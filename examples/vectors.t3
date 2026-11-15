@@ -1,0 +1,8 @@
+// Vector addition a + b = c, with grid and axes — useful for physics/math lessons.
+scene bg=#111827 cam=3.6,2.8,4.2 look=1,.6,.4 orbit grid axes dur=6s
+amb 1
+arrow a 1,0,0,2 #ff5555
+arrow b 0,1,1,1.5 #55ff88 @2,0,0
+arrow c 2,1.06,1.06,2.49 #5599ff
+sphere tip .06 @2,1.06,1.06 #fff
+anim tip s wave .4 1s

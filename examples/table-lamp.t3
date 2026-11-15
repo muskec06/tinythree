@@ -1,0 +1,20 @@
+// A desk lamp on a wooden table, with a floating neon ring.
+scene bg=#0b1020 cam=3.5,2.6,4.5 look=0,1,0 orbit shadows dur=8s
+amb .4
+sun 5,10,7 2
+mat wood #8b5a2b r=.7
+mat metal #ccc m=.9 r=.2
+mat neon #00e5ff glow=2
+plane 20 #1a2340 floor
+group table
+  box top 2,.1,1 @0,1,0 wood
+  box leg .1,1,.1 @.9,.5,.4 wood mirror=xz
+group lamp @.5,1.05,0
+  cyl base .15,.2,.05 @0,.025,0 metal
+  cyl pole .02,.5 @0,.275,0 metal
+  sphere bulb .08 @0,.56,0 neon
+  point #00e5ff 3 4 @0,.56,0
+torus ring .3,.04 @-.5,1.5,0 neon
+anim ring rot.y spin 4s
+anim ring pos.y wave .1 3s
+anim neon glow wave .5 2s

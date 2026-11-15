@@ -1,0 +1,21 @@
+// Bohr-style atom for an educational video: nucleus + three tilted electron shells.
+scene bg=#0a0f1f cam=0,2,7 look=0,0,0 orbit dur=8s
+amb .3
+point #ffffff 30 0 @3,4,5
+mat nucleus #ff4d6d glow=.6 r=.3
+mat shell #4cc9f0 glow=.4 op=.35
+mat electron #f1fa8c glow=2
+sphere core .45 nucleus
+group o1 rx=70
+  torus 2,.015 shell
+  sphere e1 .1 @2,0,0 electron
+group o2 rx=70 ry=60
+  torus 2.5,.015 shell
+  sphere e2 .1 @2.5,0,0 electron
+group o3 rx=70 ry=-60
+  torus 3,.015 shell
+  sphere e3 .1 @3,0,0 electron
+anim o1 rot.z spin 2s
+anim o2 rot.z spin 3s
+anim o3 rot.z spin -4s
+anim core s wave .05 1s

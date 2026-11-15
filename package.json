@@ -1,0 +1,51 @@
+{
+  "name": "tinythree",
+  "version": "0.1.0",
+  "description": "A tiny, token-efficient 3D scene language that compiles to Three.js — write 3D scenes with ~3x fewer LLM tokens.",
+  "type": "module",
+  "main": "src/tinythree.js",
+  "exports": {
+    ".": "./src/tinythree.js"
+  },
+  "bin": {
+    "tinythree": "bin/tinythree.js"
+  },
+  "files": [
+    "src",
+    "bin",
+    "ai",
+    "spec",
+    "examples",
+    "tools"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "bench": "node bench/run.js --md"
+  },
+  "keywords": [
+    "three.js",
+    "threejs",
+    "3d",
+    "dsl",
+    "llm",
+    "ai",
+    "tokens",
+    "transpiler",
+    "webgl",
+    "scene"
+  ],
+  "author": "muskec06",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/muskec06/tinythree.git"
+  },
+  "homepage": "https://muskec06.github.io/tinythree/",
+  "peerDependencies": {
+    "three": ">=0.160.0"
+  },
+  "devDependencies": {
+    "js-tiktoken": "^1.0.21",
+    "three": "^0.187.0"
+  }
+}

@@ -1,0 +1,22 @@
+// A 3-storey concrete frame rises level by level, while the tower crane turns.
+scene bg=#cfd8e3 cam=26,15,26 look=2,6,-2 orbit shadows dur=10s
+hemi #ffffff #7a7a6a .7
+sun 10,20,8 2.5 area=18
+mat concrete #b9b5ac r=.9
+mat steel #f2b705 m=.5 r=.4
+plane 60 #8a8170 floor
+group level hidden
+  box col .4,3,.4 @-6,1.5,-4 concrete grid=5,3,3,4
+  box slab 12.8,.3,8.8 @0,3.15,0 concrete
+use level l1
+use level l2 @0,3.3,0 s=.001
+use level l3 @0,6.6,0 s=.001
+anim l2 s to 1 1s at=1.5s
+anim l3 s to 1 1s at=4s
+group crane @9,0,-6
+  box mast .8,16,.8 @0,8,0 steel
+  group jib @0,16,0
+    box arm 14,.6,.6 @3,0,0 steel
+    box counter 1.6,1.2,1 @-4,-.4,0 #555
+    cyl rope .02,6 @8,-3,0 #333
+anim jib rot.y wave 40 10s
