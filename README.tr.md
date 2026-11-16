@@ -25,9 +25,19 @@ tinythree modele yalnızca sahneyi anlatan kısa bir yazım biçimi verir: ne ne
 
 - **Token:** Toplam 10.944'ten 3.593'e, yani **3,0 kat daha az** (sahneye göre 2,7× ile 3,8× arası).
 - **Hız:** Üretim süresi çıktı tokenıyla neredeyse doğru orantılı. Bir sahne yaklaşık üçte bir sürede yazılır.
-- **Tek seferlik maliyet:** Dili öğreten istem yaklaşık 1.300 token tutar ve 2 sahneden sonra kendini çıkarır.
+- **Tek seferlik maliyet:** Dili öğreten istem yaklaşık 1.400 token tutar ve 2 sahneden sonra kendini çıkarır.
 
 Ölçümü yeniden almak için `npm run bench` yeterli. Ayrıntılar [bench/RESULTS.md](bench/RESULTS.md) dosyasında.
+
+## Three.js'in tamamını kapsıyor mu?
+
+Evet. Tarayıcıda çalışan bir test paketiyle kontrol edildi: [**35 yetenek testinin 35'i geçiyor**](docs/CAPABILITIES.md).
+
+- **tinythree sözdizimi (13 test):** Şekiller, kafes kuleler, malzemeler, ışıklar, gölgeler, kopyalar, animasyon, perspektif ve ortografik kamera, video.
+- **`js` / `tick` blokları (15 test):** Ek geometriler, cam ve shader malzemeleri, dokular, parçacıklar, glTF modelleri, iskelet animasyonu, fare ile seçim.
+- **`renderer` bloğu (7 test):** Ton eşleme, ortam haritaları, post-processing (bloom vb.), HTML etiketleri, WebXR.
+
+Token tasarrufu ilk gruptan geliyor. Diğer ikisi sahne dosyasının içinde yazılan düz Three.js'tir: Three.js kadar token tutar, ama tinythree'den çıkmadan yapılabilir.
 
 ## Hızlı başlangıç
 

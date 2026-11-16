@@ -32,6 +32,7 @@ Usually the first line. All options are optional.
 | `cam=x,y,z` | `4,3,6` | camera position |
 | `look=x,y,z` | `0,0,0` | camera target (also the orbit center) |
 | `fov=deg` | `50` | |
+| `ortho=size` | off | orthographic camera showing `size` units vertically (isometric, plans, sections) |
 | `fog=#color,near,far` | off | |
 | `dur=8s` | `0` | length used by the video renderer |
 | `size=w,h` | `1280,720` | render size for video |
@@ -131,7 +132,32 @@ tick
 ```
 
 `js` runs once after the scene is built; `tick` runs every frame with `t` in seconds.
-Available names: `THREE`, `scene`, `camera`, `O` (objects by name), `M` (materials by name), `t` (tick only).
+Available names: `THREE`, `scene`, `camera`, `O` (objects by name), `M` (materials by name), `t` (tick only),
+and `wait(promise)`.
+
+A `renderer` block runs once when the WebGLRenderer exists. It also sees `renderer`, plus two hooks:
+`draw(fn)` replaces the default `renderer.render(scene, camera)` (post-processing, a second renderer for labels),
+and `onResize(fn)` is called with `(width, height)`.
+
+```
+renderer
+  renderer.toneMappingExposure = 1.3
+  wait(Promise.all([import('three/addons/postprocessing/EffectComposer.js'),
+                    import('three/addons/postprocessing/RenderPass.js'),
+                    import('three/addons/postprocessing/UnrealBloomPass.js')]).then(([{ EffectComposer }, { RenderPass }, { UnrealBloomPass }]) => {
+    const fx = new EffectComposer(renderer);
+    fx.addPass(new RenderPass(scene, camera));
+    fx.addPass(new UnrealBloomPass(new THREE.Vector2(512, 512), .9, .4, .2));
+    draw(() => fx.render());
+    onResize((w, h) => fx.setSize(w, h));
+  }))
+```
+
+**`wait(promise)`** registers async work: models, textures, addon imports. `mount().whenReady()` resolves after it,
+and the video renderer waits for it before the first frame. Addons can be imported with `import('three/addons/...')`,
+because the generated page and the playground both define the import map.
+
+A full, tested list of what works natively and what needs these blocks is in [docs/CAPABILITIES.md](../docs/CAPABILITIES.md).
 
 ## 8. What the compiler produces
 
@@ -145,7 +171,7 @@ export default function build(THREE) {
 ```
 
 `update(t)` is a pure function of time, which makes frame-exact video rendering possible.
-`mount(THREE, built, element)` adds a renderer, orbit controls and a render loop, and
+`mount(THREE, built, element)` adds a renderer, orbit controls and a render loop (`setAnimationLoop`, so WebXR works), and
 `toHTML(src)` produces a standalone page that exposes `window.tinythree.seek(t)`.
 
 ## 9. Errors

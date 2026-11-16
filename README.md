@@ -74,7 +74,7 @@ Each of the 10 scenes was written once in tinythree and once as compact, idiomat
 |---|---|
 | **Tokens** | 10,944 → 3,593 in total, **3.0× fewer** (2.7×–3.8× per scene) |
 | **Speed** | generation time grows roughly linearly with output tokens, so a scene takes about a third of the time to write |
-| **One-time cost** | the [AI prompt](ai/SYSTEM_PROMPT.md) that teaches the language is ~1,300 tokens. It pays for itself after about two scenes and can be prompt-cached |
+| **One-time cost** | the [AI prompt](ai/SYSTEM_PROMPT.md) that teaches the language is ~1,400 tokens. It pays for itself after about two scenes and can be prompt-cached |
 | **Edits** | changing one object means one short line, not a block of JavaScript |
 
 Reproduce it with `npm run bench`, and see [bench/RESULTS.md](bench/RESULTS.md) for the full table. Counts use OpenAI's o200k tokenizer. Claude's tokenizer differs, but because both are BPE tokenizers the ratios come out similar. Even after subtracting the ~150 tokens of renderer setup that tinythree hides, the result is still 2.6× fewer.
@@ -158,9 +158,21 @@ anim cam orbit 20s
 | **Shapes** | `box` `sphere` `cyl` `cone` `torus` `plane` `capsule` `lathe` `extrude` `arrow` `truss` `group` `use` |
 | **Copies** | `mirror=xz` · `array=n,dx,dy,dz` · `grid=nx,nz,dx,dz` · `radial=n,r` |
 | **Animation** | `spin` · `wave` · chained `to` tweens with `at=` and `ease=` · `anim cam orbit` |
-| **Escape hatch** | `js` and `tick` blocks take raw Three.js for anything else |
+| **Escape hatch** | `js`, `tick` and `renderer` blocks take raw Three.js for anything else: GLTF models, shaders, particles, post-processing, environment maps, WebXR |
 
 The full reference is in [spec/LANGUAGE.md](spec/LANGUAGE.md).
+
+## Does it cover all of Three.js?
+
+Yes. The coverage is checked by a browser test suite: [**35/35 capability probes pass**](docs/CAPABILITIES.md).
+
+| | features | probes |
+|---|---|---:|
+| ✅ **tinythree syntax** | shapes, lattices, materials, lights, shadows, fog, copies, groups, clones, animation, perspective and orthographic cameras, frame-exact video | 13 |
+| 🧩 **`js` / `tick` blocks** | extra geometries, physical, toon and shader materials, textures, spot and area lights, particles, lines, sprites, instancing, raycasting, glTF models, keyframe, morph and skinned animation, audio | 15 |
+| 🔧 **`renderer` block** | tone mapping, environment maps, post-processing (bloom, DOF, SSAO…), HTML labels, WebXR | 7 |
+
+The token savings come from the first row. The other two are plain Three.js inside the scene file: they cost the same tokens as Three.js, but you never have to leave tinythree. Known limits are listed in [docs/CAPABILITIES.md](docs/CAPABILITIES.md#known-limits).
 
 ## Video rendering
 
@@ -198,11 +210,11 @@ flowchart LR
 ```
 src/tinythree.js      parser, compiler, runtime (mount) and HTML export
 bin/tinythree.js      CLI
-ai/SYSTEM_PROMPT.md   compact language description for LLMs (~1.3k tokens)
+ai/SYSTEM_PROMPT.md   compact language description for LLMs (~1.4k tokens)
 spec/LANGUAGE.md      full language reference
 examples/             10 example scenes
 playground/           live editor (GitHub Pages)
-bench/                token benchmark, hand-written Three.js versions, chart
+bench/                token benchmark, hand-written Three.js versions, chart, capability audit
 tools/render.py       frame-exact video and PNG renderer
 test/                 node:test suite
 ```
@@ -211,7 +223,7 @@ test/                 node:test suite
 
 - [ ] **Part library:** doors, windows, stairs, trees, people, vehicles (`use lib:door`)
 - [ ] **Text labels** and 2D overlays for educational videos
-- [ ] **GLTF import/export** (`model chair.glb`)
+- [ ] **Short syntax for models and textures** (`model chair.glb`, `mat brick map=brick.jpg`); today they work through `js` blocks
 - [ ] **CSG** booleans for openings in walls
 - [ ] **AI eval:** first-try success rate across models, plus counts from Claude's own token counter
 - [ ] **Claude skill and MCP server:** write, compile and render in one step

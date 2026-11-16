@@ -1,0 +1,247 @@
+[
+  {
+    "area": "Geometry",
+    "feature": "box, sphere, cyl, cone, torus, plane, capsule, lathe, extrude",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Geometry",
+    "feature": "lattice towers (truss, instanced)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Geometry",
+    "feature": "arrows / vectors",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Material",
+    "feature": "standard: color, roughness, metalness, emissive, opacity, wireframe, flat, double side",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Light",
+    "feature": "ambient, hemisphere, directional (sun), point",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Rendering",
+    "feature": "shadow maps",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Rendering",
+    "feature": "linear fog, background color, transparent background",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Rendering",
+    "feature": "grid and axes helpers",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Scene graph",
+    "feature": "groups, nesting, clones (use), hidden templates",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Scene graph",
+    "feature": "copies: mirror, array, grid, radial",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Animation",
+    "feature": "spin, wave, chained tweens with easing, camera orbit",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Camera",
+    "feature": "perspective camera, position, target, fov, orbit controls",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Video",
+    "feature": "frame-exact seek(t)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Geometry",
+    "feature": "torus knot, polyhedra, ring, circle, tube along a curve, shape, edges",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Material",
+    "feature": "physical (glass transmission, clearcoat), toon, phong, lambert, basic, normal",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Material",
+    "feature": "custom GLSL shader with a time uniform",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Texture",
+    "feature": "procedural textures (canvas), gradient sky background",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Texture",
+    "feature": "image textures via TextureLoader (async)",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Light",
+    "feature": "spot light with target, light helpers",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Light",
+    "feature": "rect area light (addon, dynamic import)",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Objects",
+    "feature": "particles (Points) animated per frame",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Objects",
+    "feature": "lines, line loops, sprites, LOD, instanced meshes with per-instance color",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Rendering",
+    "feature": "exponential fog",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Interaction",
+    "feature": "raycasting / picking objects under the mouse",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Loaders",
+    "feature": "glTF / GLB models (GLTFLoader via dynamic import)",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Animation",
+    "feature": "keyframe clips with AnimationMixer, morph targets, skinned meshes (frame-exact)",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Text",
+    "feature": "3D text labels as sprites (canvas)",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Audio",
+    "feature": "positional audio attached to the camera",
+    "level": "js",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Rendering",
+    "feature": "renderer settings: tone mapping, exposure, color space, pixel ratio",
+    "level": "renderer",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Rendering",
+    "feature": "environment maps / image-based lighting (PMREM + RoomEnvironment)",
+    "level": "renderer",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Post-processing",
+    "feature": "EffectComposer: bloom, depth of field, outlines, SSAO",
+    "level": "renderer",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Camera",
+    "feature": "orthographic camera (isometric / technical views)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Text",
+    "feature": "HTML labels in 3D (CSS2DRenderer drawn every frame)",
+    "level": "renderer",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "XR",
+    "feature": "WebXR VR/AR (renderer.xr + VRButton)",
+    "level": "renderer",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Video",
+    "feature": "async assets (textures/models) loaded before the first video frame",
+    "level": "js",
+    "works": true,
+    "errors": []
+  }
+]

@@ -36,7 +36,7 @@ function suggest(word, list) {
 const NUM = /^-?(\d+\.?\d*|\.\d+)$/;
 const IDENT = /^[A-Za-z_][\w-]*$/;
 const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow', 'truss'];
-const COMMANDS = ['scene', 'amb', 'hemi', 'sun', 'point', 'mat', 'group', 'use', 'anim', 'js', 'tick', ...PRIMS];
+const COMMANDS = ['scene', 'amb', 'hemi', 'sun', 'point', 'mat', 'group', 'use', 'anim', 'js', 'tick', 'renderer', ...PRIMS];
 const FLAGS = ['floor', 'noshadow', 'hidden'];
 const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'lean', 'n', 't', 'seg', 'pts', 'd', 'name'];
 
@@ -90,9 +90,9 @@ function lex(src) {
 export function parse(src) {
   const lines = lex(src);
   const ast = {
-    scene: { bg: 0x101418, cam: [4, 3, 6], look: [0, 0, 0], fov: 50, orbit: false, shadows: false,
+    scene: { bg: 0x101418, cam: [4, 3, 6], look: [0, 0, 0], fov: 50, ortho: 0, orbit: false, shadows: false,
       grid: false, axes: false, fog: null, dur: 0, size: [1280, 720], transparent: false },
-    mats: {}, nodes: [], anims: [], js: [], tick: [], names: new Set(),
+    mats: {}, nodes: [], anims: [], js: [], tick: [], host: [], names: new Set(),
   };
   const stack = [{ indent: -1, children: ast.nodes }];
 
@@ -102,13 +102,13 @@ export function parse(src) {
     const [cmd, ...args] = L.tokens;
     const line = L.line;
 
-    if (cmd === 'js' || cmd === 'tick') {
+    if (cmd === 'js' || cmd === 'tick' || cmd === 'renderer') {
       const body = [];
       while (i + 1 < lines.length && (lines[i + 1].indent > L.indent || !lines[i + 1].text)) {
         i++;
         body.push(lines[i].raw.replace(/^\s{0,2}/, ''));
       }
-      (cmd === 'js' ? ast.js : ast.tick).push(body.join('\n'));
+      ({ js: ast.js, tick: ast.tick, renderer: ast.host })[cmd].push(body.join('\n'));
       continue;
     }
     if (!COMMANDS.includes(cmd)) throw new TinyThreeError(`unknown command "${cmd}"`, line, suggest(cmd, COMMANDS));
@@ -158,11 +158,12 @@ function parseScene(s, args, line) {
       case 'cam': s.cam = list(v, line, 3); break;
       case 'look': s.look = list(v, line, 3); break;
       case 'fov': s.fov = num(v, line); break;
+      case 'ortho': s.ortho = num(v, line); break;
       case 'dur': s.dur = time(v, line); break;
       case 'size': s.size = list(v, line, 2); break;
       case 'fog': { const [c, n, f] = v.split(','); s.fog = [color(c, line), num(n ?? '5', line), num(f ?? '40', line)]; break; }
       default: throw new TinyThreeError(`unknown scene option "${k}"`, line,
-        suggest(k, ['bg', 'cam', 'look', 'fov', 'dur', 'size', 'fog']));
+        suggest(k, ['bg', 'cam', 'look', 'fov', 'ortho', 'dur', 'size', 'fog']));
     }
   }
 }
@@ -361,7 +362,12 @@ export function compile(src, { format = 'esm' } = {}) {
   w(`  const scene = new THREE.Scene();`);
   if (S.bg !== null) w(`  scene.background = new THREE.Color(${hex(S.bg)});`);
   if (S.fog) w(`  scene.fog = new THREE.Fog(${hex(S.fog[0])}, ${f(S.fog[1])}, ${f(S.fog[2])});`);
-  w(`  const camera = new THREE.PerspectiveCamera(${f(S.fov)}, ${f(S.size[0] / S.size[1])}, 0.1, 1000);`);
+  if (S.ortho) {
+    const a = S.size[0] / S.size[1], h = S.ortho / 2;
+    w(`  let camera = new THREE.OrthographicCamera(${f(-h * a)}, ${f(h * a)}, ${f(h)}, ${f(-h)}, 0.1, 1000);`);
+  } else w(`  let camera = new THREE.PerspectiveCamera(${f(S.fov)}, ${f(S.size[0] / S.size[1])}, 0.1, 1000);`);
+  // wait(promise): register async work (models, textures, imports) that video rendering must wait for
+  w(`  const _pending = []; const wait = (p) => (_pending.push(Promise.resolve(p)), p);`);
   w(`  camera.position.set(${vec(S.cam)});`);
   w(`  camera.lookAt(${vec(S.look)});`);
   if (S.grid) w(`  scene.add(new THREE.GridHelper(20, 20, 0x335577, 0x223344));`);
@@ -558,8 +564,15 @@ export function compile(src, { format = 'esm' } = {}) {
   if (camAnims.length) { w(`    if (animateCamera) {`); camAnims.forEach((u) => w(`      ${u}`)); w(`    }`); }
   for (const code of ast.tick) { w(`    // --- tick block`); code.split('\n').forEach((l) => w('    ' + l)); }
   w(`  }`);
-  const opts = { orbit: S.orbit, shadows: S.shadows, look: S.look, dur: S.dur, size: S.size, transparent: S.transparent, camAnim: camAnims.length > 0 };
-  w(`  return { scene, camera, update, objects: O, materials: M, opts: ${JSON.stringify(opts)} };`);
+  // renderer blocks run once inside mount(), with the WebGLRenderer available
+  w(`  function host(renderer, H) {`);
+  if (ast.host.length) {
+    w(`    const draw = (fn) => { H.draw = fn; }, onResize = (fn) => { H.resize = fn; };`);
+    for (const code of ast.host) { w(`    // --- renderer block`); code.split('\n').forEach((l) => w('    ' + l)); }
+  }
+  w(`  }`);
+  const opts = { orbit: S.orbit, shadows: S.shadows, look: S.look, dur: S.dur, size: S.size, transparent: S.transparent, ortho: S.ortho, camAnim: camAnims.length > 0 };
+  w(`  return { scene, camera, update, host, ready: () => Promise.all(_pending), objects: O, materials: M, opts: ${JSON.stringify(opts)} };`);
   w(`}`);
   return out.join('\n');
 }
@@ -576,6 +589,9 @@ export function mount(THREE, built, el, { OrbitControls = null, autoplay = true,
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   if (opts.transparent) renderer.setClearColor(0x000000, 0);
   el.appendChild(renderer.domElement);
+  // H: hooks a `renderer` block can set — draw() replaces renderer.render (post-processing, extra renderers), resize(w, h)
+  const H = { draw: null, resize: null };
+  if (built.host) built.host(renderer, H);
   let controls = null, userCam = false;
   if (opts.orbit && OrbitControls) {
     controls = new OrbitControls(camera, renderer.domElement);
@@ -584,33 +600,40 @@ export function mount(THREE, built, el, { OrbitControls = null, autoplay = true,
     controls.addEventListener('start', () => { userCam = true; });
   }
   const resize = (w = width || el.clientWidth || innerWidth, h = height || el.clientHeight || innerHeight) => {
-    renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    if (camera.isOrthographicCamera) {
+      const half = (camera.top - camera.bottom) / 2;
+      camera.left = -half * (w / h); camera.right = half * (w / h);
+    } else camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    if (H.resize) H.resize(w, h);
   };
   resize();
   const onResize = () => { if (!width) resize(); };
   addEventListener('resize', onResize);
-  let t = 0, last = performance.now(), playing = autoplay, raf = 0;
+  let t = 0, last = performance.now(), playing = autoplay, looping = false;
   const frame = () => {
     update(t, !userCam);
     if (controls) controls.update();
-    renderer.render(scene, camera);
+    if (H.draw) H.draw(t); else renderer.render(scene, camera);
   };
   const loop = (now) => {
-    raf = requestAnimationFrame(loop);
     if (playing) t += Math.min(0.1, (now - last) / 1000);
     last = now;
     frame();
   };
+  const start = () => { if (!looping) { looping = true; last = performance.now(); renderer.setAnimationLoop(loop); } };
   update(0, true); frame();
-  if (autoplay) raf = requestAnimationFrame(loop);
+  if (autoplay) start();
   return {
     renderer, scene, camera, controls, duration: opts.dur, size: opts.size,
     seek(time) { t = time; frame(); },
-    play() { playing = true; last = performance.now(); if (!raf) raf = requestAnimationFrame(loop); },
+    play() { playing = true; start(); },
     pause() { playing = false; },
     get time() { return t; },
+    whenReady() { return (built.ready ? built.ready() : Promise.resolve()).then(() => frame()); },
     resize,
-    dispose() { cancelAnimationFrame(raf); removeEventListener('resize', onResize); controls?.dispose(); renderer.dispose(); renderer.domElement.remove(); },
+    dispose() { renderer.setAnimationLoop(null); removeEventListener('resize', onResize); controls?.dispose(); renderer.dispose(); renderer.domElement.remove(); },
   };
 }
 
@@ -640,7 +663,7 @@ const render = q.has('render');
 const built = build(THREE);
 const [w, h] = render ? built.opts.size : [0, 0];
 window.tinythree = mount(THREE, built, document.body, { OrbitControls: render ? null : OrbitControls, autoplay: !render, width: w, height: h });
-window.tinythree.ready = true;
+window.tinythree.whenReady().then(() => { window.tinythree.ready = true; }, (e) => { console.error(e); window.tinythree.ready = true; });
 </script>
 </body>
 </html>

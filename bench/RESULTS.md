@@ -16,7 +16,7 @@
 
 \* minus 156 tokens of renderer/controls/resize setup that every Three.js page needs and tinythree hides.
 
-AI prompt that teaches the language (`ai/SYSTEM_PROMPT.md`): **1276 tokens**, sent once per conversation (and cacheable).
+AI prompt that teaches the language (`ai/SYSTEM_PROMPT.md`): **1399 tokens**, sent once per conversation (and cacheable).
 Average saving per scene: 735 tokens → the prompt pays for itself after ~2 scenes or edits.
 
 Tokenizer: OpenAI o200k_base via js-tiktoken (Claude's tokenizer differs; ratios are similar because both are BPE).

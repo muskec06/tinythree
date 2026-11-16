@@ -135,3 +135,26 @@ test('truss picks bays from its size by default', () => {
   const b = build('truss t 2,2,6');
   assert.equal(b.objects.t.count, 5 * 4 * 4 + 4);
 });
+
+test('orthographic camera', () => {
+  const b = build('scene ortho=8 size=1600,800');
+  assert.ok(b.camera.isOrthographicCamera);
+  assert.equal(b.camera.top, 4);
+  assert.equal(b.camera.right, 8);
+});
+
+test('renderer block gets the renderer and can replace drawing', () => {
+  const b = build('box a\nrenderer\n  renderer.flag = 1\n  draw(() => 42)\n  onResize((w, h) => w + h)');
+  const fake = {}, H = {};
+  b.host(fake, H);
+  assert.equal(fake.flag, 1);
+  assert.equal(H.draw(), 42);
+  assert.equal(H.resize(2, 3), 5);
+});
+
+test('wait() makes ready() wait for async work', async () => {
+  const b = build('js\n  wait(new Promise((r) => setTimeout(() => { O.late = 1; r(); }, 20)))');
+  assert.equal(b.objects.late, undefined);
+  await b.ready();
+  assert.equal(b.objects.late, 1);
+});

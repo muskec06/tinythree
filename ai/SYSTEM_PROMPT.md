@@ -6,7 +6,7 @@ Tokens: `@x,y,z` position · `#rgb`/`#rrggbb` color · `key=value` option · bar
 
 ## Scene (one line, first)
 `scene bg=#0b1020 cam=4,3,6 look=0,1,0 fov=50 orbit shadows grid axes fog=#color,near,far dur=8s size=1280,720`
-`bg=none` = transparent (video overlay). `orbit` = mouse orbit. `dur` = video length.
+`bg=none` = transparent (video overlay). `orbit` = mouse orbit. `dur` = video length. `ortho=10` = orthographic camera showing 10 units vertically.
 
 ## Lights
 `amb [int] [#c]` · `hemi #sky #ground [int]` · `sun x,y,z [int] [#c] [area=10]` (casts shadows) · `point #c [int] [dist] @x,y,z`
@@ -46,13 +46,18 @@ props: `pos.x pos.y pos.z rot.x rot.y rot.z s` (objects) · `glow op` (materials
 - `anim cam orbit 20s` camera circles around `look`
 Pop-in: give the object `s=.001`, then `anim name s to 1 .8s at=2s`.
 
-## Escape hatch (raw Three.js)
+## Escape hatch (raw Three.js) — for anything not above
 ```
 js
-  // setup: THREE, scene, camera, O (objects by name), M (materials by name)
+  // once: THREE, scene, camera, O (objects by name), M (materials by name)
+  // addons: wait(import('three/addons/loaders/GLTFLoader.js').then(...))
 tick
-  // every frame: t = seconds
+  // every frame: t = seconds (keep it a pure function of t for video)
+renderer
+  // once, with `renderer`: tone mapping, scene.environment (PMREM), post-processing, WebXR
+  // draw(() => composer.render()) replaces the default render; onResize((w, h) => ...)
 ```
+Wrap async work (models, textures, imports) in `wait(promise)` so videos start after it loads.
 
 ## Example
 ```
