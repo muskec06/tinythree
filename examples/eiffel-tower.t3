@@ -1,23 +1,68 @@
-// Eiffel Tower, Paris — 1 unit ≈ 30 m
-scene bg=#cfe3f5 cam=12,4.5,12 look=0,5,0 orbit shadows fog=#cfe3f5,25,70 dur=12s
-hemi #ffffff #6b7d5a .9
-sun 6,14,8 2.5 area=8
-mat iron #6a5240 r=.8 m=.3
-mat lattice #8a6d55 wire
-mat deck #3e3027 r=.7
-mat beacon #ffd27a glow=3
-plane 60 #7c9a5c floor
-group legs ry=45
-  box leg .45,2.4,.45 @0,1.1,0 iron rz=22 radial=4,1.9
-torus arch 1.15,.07 @0,.85,0 iron arc=180 ry=90 radial=4,1.45
-box deck1 2.5,.16,2.5 @0,2.25,0 deck
-cyl mid 1.05,1.65,1.9 @0,3.25,0 seg=4 ry=45 lattice
-cyl midcore .95,1.5,1.9 @0,3.25,0 seg=4 ry=45 iron
-box deck2 1.5,.12,1.5 @0,4.25,0 deck
-cyl top .2,1,5.2 @0,6.9,0 seg=4 ry=45 lattice
-cyl topcore .16,.9,5.2 @0,6.9,0 seg=4 ry=45 iron
-box deck3 .45,.14,.45 @0,9.55,0 deck
-cyl spire .03,.07,1.1 @0,10.15,0 iron
-sphere light .09 @0,10.75,0 beacon
-anim cam orbit 24s
+// Eiffel Tower, Paris — real proportions, 1 unit = 10 m (330 m tall)
+scene bg=#a9cdee cam=27,8,31 look=0,14,0 fov=50 orbit shadows fog=#cfe2f3,60,160 dur=20s
+hemi #ffffff #6f8a55 .9
+sun 30,45,25 3 #fff4e0 area=30
+mat iron #7a5a40 r=.6 m=.4
+mat deck #5e4532 r=.7
+mat glass #cfe8ff glow=.3 op=.7
+mat beacon #ffe28a glow=3
+mat leaf #3f7a3a r=1 flat
+mat stone #e9dfc9 r=.9
+mat slate #6f7680 r=.8
+mat water #4f86bd r=.2 m=.3
+
+// --- the tower: four curved legs, each a lattice in three segments
+truss leg1 2.6,2.1,3 @5,0,5 lean=-1.25,-1.25 iron mirror=xz
+truss leg2 2.1,1.7,2.76 @3.75,3,3.75 lean=-.85,-.85 iron mirror=xz
+truss leg3 1.7,1.25,5.84 @2.9,5.76,2.9 lean=-1.5,-1.5 iron mirror=xz
+torus arch 3.4,.09 @0,.5,0 arc=180 ry=90 iron radial=4,4.55
+torus arch2 3.2,.045 @0,.5,0 arc=180 ry=90 iron radial=4,4.3
+// first floor (57 m): deck + lattice gallery
+box floor1 7,.3,7 @0,5.76,0 deck
+truss gallery1 7.4,7.4,.8 @0,5.9,0 n=14 t=.03 iron
+// second floor (116 m)
+box floor2 4.2,.25,4.2 @0,11.6,0 deck
+truss gallery2 4.5,4.5,.5 @0,11.72,0 n=10 t=.03 iron
+// upper shaft, slightly concave
+truss shaft1 4,2.9,4.4 @0,11.6,0 iron
+truss shaft2 2.9,2,5 @0,16,0 iron
+truss shaft3 2,1.15,6.6 @0,21,0 iron
+// third floor (276 m), lantern and antenna
+box floor3 1.7,.12,1.7 @0,27.6,0 deck
+box cabin 1.2,.7,1.2 @0,28.05,0 glass
+truss lantern 1,.5,1.4 @0,28.4,0 n=3 iron
+cyl antenna .04,.09,3 @0,31.3,0 iron
+sphere light .14 @0,29.9,0 beacon
+
+// --- Champ de Mars
+plane 300 #8fb06a floor
+box plaza 18,.04,18 @0,.02,0 #d9ceb4
+box lawn 7,.05,46 @-5,.03,36 #77a352 mirror=x
+box path 2.6,.05,46 @0,.03,36 #e2d6bb
+group tree hidden
+  cyl trunk .12,.9 @0,.45,0 #6b4b2a
+  sphere crown .8 @0,1.5,0 leaf s=1,1.25,1
+use tree alley @-10,0,14 grid=2,9,20,5
+use tree alley2 @-13,0,16 grid=2,8,26,5.5
+use tree park @-24,0,-6 grid=4,3,16,6
+// --- the Seine and the Right Bank
+box seine 300,.06,10 @0,.04,-18 water
+box quay 300,.4,1.2 @0,.2,-12.6 stone mirror=z
+group block hidden
+  box walls 6,3.2,4 @0,1.6,0 stone
+  box roof 6.2,.9,4.2 @0,3.6,0 slate
+use block row1 @-33,0,-28 array=12,6.4,0,0
+use block row2 @-33,0,-34 array=12,6.4,0,0 s=1,1.2,1
+use block side @-28,0,22 array=6,0,0,7 mirror=x ry=90
+// --- clouds
+group cloud hidden
+  sphere a 2.4 #ffffff noshadow
+  sphere b 1.8 @2.4,-.4,.3 #ffffff noshadow
+  sphere c 1.6 @-2.3,-.6,-.2 #ffffff noshadow
+use cloud c1 @-30,30,-40
+use cloud c2 @25,36,-55 s=1.4
+use cloud c3 @45,26,10 s=.9
+anim c1 pos.x wave 4 30s
+anim c2 pos.x wave 5 40s
+anim cam orbit 60s
 anim beacon glow wave 2 1.5s

@@ -110,3 +110,28 @@ test('torus arc makes a partial ring', () => {
   const b = build('torus t 1,.1 arc=180');
   assert.ok(Math.abs(b.objects.t.geometry.parameters.arc - Math.PI) < 1e-6);
 });
+
+test('truss builds an instanced lattice and mirrored copies lean inward', () => {
+  const b = build('mat s #888\ntruss leg 2,1,4 @3,0,3 lean=-1,-1 n=4 s mirror=xz');
+  const legs = b.objects.leg.children;
+  assert.equal(legs.length, 4);
+  assert.ok(legs[0].isInstancedMesh);
+  assert.equal(legs[0].count, 4 * 4 * 4 + 4); // 4 bays × 4 faces × 4 beams + bottom ring
+  for (const leg of legs) {
+    leg.updateMatrixWorld(true);
+    // the top centre must be closer to the axis than the base centre
+    const m = new THREE.Matrix4();
+    let topC = new THREE.Vector3(), botC = new THREE.Vector3(), nt = 0, nb = 0;
+    for (let i = 0; i < leg.count; i++) {
+      leg.getMatrixAt(i, m); const p = new THREE.Vector3().setFromMatrixPosition(m).applyMatrix4(leg.matrixWorld);
+      if (p.y > 3.4) { topC.add(p); nt++; } else if (p.y < 0.6) { botC.add(p); nb++; }
+    }
+    topC.divideScalar(nt); botC.divideScalar(nb);
+    assert.ok(Math.hypot(topC.x, topC.z) < Math.hypot(botC.x, botC.z), 'leans inward');
+  }
+});
+
+test('truss picks bays from its size by default', () => {
+  const b = build('truss t 2,2,6');
+  assert.equal(b.objects.t.count, 5 * 4 * 4 + 4);
+});

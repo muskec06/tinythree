@@ -13,7 +13,7 @@ Designed so AI models can write 3D scenes with **~3× fewer tokens**, faster and
 
 [**Playground**](https://muskec06.github.io/tinythree/) · [Gallery](#gallery) · [Benchmark](#benchmark) · [Language](spec/LANGUAGE.md) · [AI prompt](ai/SYSTEM_PROMPT.md) · [Türkçe](README.tr.md)
 
-<img src="docs/hero.gif" width="720" alt="The Eiffel Tower written in 22 lines of tinythree, rendered with Three.js">
+<img src="docs/hero.gif" width="400" alt="A detailed Eiffel Tower with 1,400 lattice beams, written in 57 lines of tinythree">
 
 </div>
 
@@ -26,65 +26,66 @@ When a language model writes Three.js, most of what it types is ceremony: `new T
 tinythree gives the model a notation that only describes the scene: what is where, made of what, moving how. A zero-dependency compiler turns it into plain Three.js. The idea comes from [sand3d](https://github.com/Sandflow-ai/sand3d), which does the same for Blender. tinythree targets the web, and frame-exact video as well.
 
 <table>
-<tr><th>tinythree: 22 lines, 430 tokens</th><th>Three.js: 80 lines, 1,225 tokens</th></tr>
+<tr><th>tinythree: 57 lines, 1,117 tokens</th><th>Three.js: 165 lines, 3,028 tokens</th></tr>
 <tr>
 <td valign="top">
 
 ```
-mat iron #6a5240 r=.8 m=.3
-mat lattice #8a6d55 wire
-group legs ry=45
-  box leg .45,2.4,.45 @0,1.1,0 iron rz=22 radial=4,1.9
-torus arch 1.15,.07 @0,.85,0 iron arc=180 ry=90 radial=4,1.45
-cyl top .2,1,5.2 @0,6.9,0 seg=4 ry=45 lattice
-anim cam orbit 24s
+// four curved legs, each a lattice in three segments
+truss leg1 2.6,2.1,3 @5,0,5 lean=-1.25,-1.25 iron mirror=xz
+truss leg2 2.1,1.7,2.76 @3.75,3,3.75 lean=-.85,-.85 iron mirror=xz
+truss leg3 1.7,1.25,5.84 @2.9,5.76,2.9 lean=-1.5,-1.5 iron mirror=xz
+torus arch 3.4,.09 @0,.5,0 arc=180 ry=90 iron radial=4,4.55
+box floor1 7,.3,7 @0,5.76,0 deck
+truss gallery1 7.4,7.4,.8 @0,5.9,0 n=14 t=.03 iron
+truss shaft1 4,2.9,4.4 @0,11.6,0 iron
 ```
 
 </td>
 <td valign="top">
 
 ```js
-const iron = new THREE.MeshStandardMaterial(
-  { color: 0x6a5240, roughness: 0.8, metalness: 0.3 });
-const lattice = new THREE.MeshStandardMaterial(
-  { color: 0x8a6d55, wireframe: true });
-for (let i = 0; i < 4; i++) {
-  const a = Math.PI / 4 + i * Math.PI / 2;
-  const leg = add(new THREE.BoxGeometry(.45, 2.4, .45),
-    iron, Math.cos(a) * 1.9, 1.1, Math.sin(a) * 1.9);
-  leg.rotation.set(0, -a, deg(22));
+function truss(w0, w1, h, x, y, z, lx = 0, lz = 0, bays, t) {
+  const P = (k, yy) => { /* corner k at height yy */ };
+  const beams = [];
+  for (let i = 0; i < bays; i++) { /* posts, rings, X braces */ }
+  const m = new THREE.InstancedMesh(beamGeo, iron, beams.length);
+  beams.forEach(([a, b, th], i) => { /* orient each beam */ });
+  …
 }
-// … arches, sections, camera orbit loop, resize …
+for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) {
+  truss(2.6, 2.1, 3, 5 * sx, 0, 5 * sz, -1.25 * sx, -1.25 * sz);
+  …
 ```
 
 </td>
 </tr>
 </table>
 
-Full sources: [`examples/eiffel-tower.t3`](examples/eiffel-tower.t3) and [`bench/threejs/eiffel-tower.js`](bench/threejs/eiffel-tower.js).
+The tower has real proportions (1 unit = 10 m) and is built from about 1,400 lattice beams drawn as instanced meshes, standing on the Champ de Mars by the Seine. Full sources: [`examples/eiffel-tower.t3`](examples/eiffel-tower.t3) and [`bench/threejs/eiffel-tower.js`](bench/threejs/eiffel-tower.js).
 
 ## Benchmark
 
-<img src="docs/benchmark.png" width="760" alt="Bar chart: tinythree uses 2.7× to 3.8× fewer tokens than hand-written Three.js across 10 scenes, 3.1× in total">
+<img src="docs/benchmark.png" width="760" alt="Bar chart: tinythree uses 2.7× to 3.8× fewer tokens than hand-written Three.js across 10 scenes, 3.0× in total">
 
 Each of the 10 scenes was written once in tinythree and once as compact, idiomatic Three.js. Loops and helper functions were allowed in the Three.js versions, and both versions were rendered to confirm they draw the same scene.
 
 | | |
 |---|---|
-| **Tokens** | 9,141 → 2,906 in total, **3.1× fewer** (2.7×–3.8× per scene) |
+| **Tokens** | 10,944 → 3,593 in total, **3.0× fewer** (2.7×–3.8× per scene) |
 | **Speed** | generation time grows roughly linearly with output tokens, so a scene takes about a third of the time to write |
-| **One-time cost** | the [AI prompt](ai/SYSTEM_PROMPT.md) that teaches the language is ~1,200 tokens. It pays for itself after about two scenes and can be prompt-cached |
+| **One-time cost** | the [AI prompt](ai/SYSTEM_PROMPT.md) that teaches the language is ~1,300 tokens. It pays for itself after about two scenes and can be prompt-cached |
 | **Edits** | changing one object means one short line, not a block of JavaScript |
 
 Reproduce it with `npm run bench`, and see [bench/RESULTS.md](bench/RESULTS.md) for the full table. Counts use OpenAI's o200k tokenizer. Claude's tokenizer differs, but because both are BPE tokenizers the ratios come out similar. Even after subtracting the ~150 tokens of renderer setup that tinythree hides, the result is still 2.6× fewer.
 
 ## Gallery
 
-Every scene below is a single `.t3` file of 7 to 22 lines. Click one to open it in the playground.
+Every scene below is a single `.t3` file of 7 to 57 lines. Click one to open it in the playground.
 
 <table>
 <tr>
-<td align="center"><a href="https://muskec06.github.io/tinythree/#eiffel-tower"><img src="docs/gallery/eiffel-tower.jpg" width="240"><br><b>Eiffel Tower</b></a><br><sub>430 tokens · 2.8× fewer</sub></td>
+<td align="center"><a href="https://muskec06.github.io/tinythree/#eiffel-tower"><img src="docs/gallery/eiffel-tower.jpg" width="240"><br><b>Eiffel Tower</b></a><br><sub>1,117 tokens · 2.7× fewer · 1,400 beams</sub></td>
 <td align="center"><a href="https://muskec06.github.io/tinythree/#leaning-tower-pisa"><img src="docs/gallery/leaning-tower-pisa.jpg" width="240"><br><b>Leaning Tower of Pisa</b></a><br><sub>316 tokens · 3.1× fewer</sub></td>
 <td align="center"><a href="https://muskec06.github.io/tinythree/#giza-pyramids"><img src="docs/gallery/giza-pyramids.jpg" width="240"><br><b>Pyramids of Giza</b></a><br><sub>293 tokens · 2.8× fewer</sub></td>
 </tr>
@@ -154,7 +155,7 @@ anim cam orbit 20s
 
 | | |
 |---|---|
-| **Shapes** | `box` `sphere` `cyl` `cone` `torus` `plane` `capsule` `lathe` `extrude` `arrow` `group` `use` |
+| **Shapes** | `box` `sphere` `cyl` `cone` `torus` `plane` `capsule` `lathe` `extrude` `arrow` `truss` `group` `use` |
 | **Copies** | `mirror=xz` · `array=n,dx,dy,dz` · `grid=nx,nz,dx,dz` · `radial=n,r` |
 | **Animation** | `spin` · `wave` · chained `to` tweens with `at=` and `ease=` · `anim cam orbit` |
 | **Escape hatch** | `js` and `tick` blocks take raw Three.js for anything else |
@@ -197,7 +198,7 @@ flowchart LR
 ```
 src/tinythree.js      parser, compiler, runtime (mount) and HTML export
 bin/tinythree.js      CLI
-ai/SYSTEM_PROMPT.md   compact language description for LLMs (~1.2k tokens)
+ai/SYSTEM_PROMPT.md   compact language description for LLMs (~1.3k tokens)
 spec/LANGUAGE.md      full language reference
 examples/             10 example scenes
 playground/           live editor (GitHub Pages)

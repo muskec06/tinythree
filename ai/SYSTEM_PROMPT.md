@@ -28,6 +28,7 @@ Lights may be indented in a group.
 | `lathe` | `pts=r,y;r,y;...` (revolved profile) |
 | `extrude` | `pts=x,y;x,y;...` `d=depth` |
 | `arrow` | dx,dy,dz,length + `#color` |
+| `truss` | w0,w1,h — lattice tower segment (posts, rings, X braces); origin at its base; `lean=dx,dz` shifts the top; `n=` bays, `t=` beam size |
 | `group` | children indented below |
 | `use src [name]` | clone of an object/group defined above |
 
@@ -72,6 +73,7 @@ anim neon glow wave .5 2s
 ## Rules
 - Prefer `mirror`/`array`/`grid`/`radial`/`use` over repeating lines.
 - Square pyramid / tapered tower: `cone r,h seg=4 ry=45` or `cyl rTop,rBottom,h seg=4 ry=45`.
+- Steel lattice (towers, pylons, cranes): stack `truss` segments; curve a leg by stacking segments with decreasing `lean`. `mirror` also mirrors `lean`.
 - Position is the object's center: a box of height h on the floor sits at y=h/2.
 - Keep numbers short: `.5` not `0.50`.
 - If the compiler reports `line N: ...`, fix only that line.

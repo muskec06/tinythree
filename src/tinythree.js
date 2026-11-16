@@ -35,10 +35,10 @@ function suggest(word, list) {
 
 const NUM = /^-?(\d+\.?\d*|\.\d+)$/;
 const IDENT = /^[A-Za-z_][\w-]*$/;
-const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow'];
+const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow', 'truss'];
 const COMMANDS = ['scene', 'amb', 'hemi', 'sun', 'point', 'mat', 'group', 'use', 'anim', 'js', 'tick', ...PRIMS];
 const FLAGS = ['floor', 'noshadow', 'hidden'];
-const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'seg', 'pts', 'd', 'name'];
+const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'lean', 'n', 't', 'seg', 'pts', 'd', 'name'];
 
 const isNum = (t) => NUM.test(t);
 const isList = (t) => t.split(',').every(isNum);
@@ -208,7 +208,7 @@ function parseMat(ast, args, line) {
 
 function parseNode(ast, type, args, line) {
   const n = { type, line, name: null, dims: null, mat: null, color: null, pos: [0, 0, 0], rot: [0, 0, 0], scale: [1, 1, 1],
-    flags: new Set(), copies: null, arc: null, seg: null, pts: null, depth: null, src: null, children: type === 'group' ? [] : null };
+    flags: new Set(), copies: null, mirrors: null, lean: [0, 0], bays: null, thick: null, arc: null, seg: null, pts: null, depth: null, src: null, children: type === 'group' ? [] : null };
   let rest = args;
   if (type === 'use') {
     if (!rest[0]) throw new TinyThreeError('use needs an object name', line);
@@ -240,6 +240,9 @@ function parseNode(ast, type, args, line) {
         case 'grid': grid = list(v, line, 4, 'nx,nz,dx,dz'); break;
         case 'radial': radial = list(v, line, 2, 'n,radius'); break;
         case 'arc': n.arc = num(v, line); break;
+        case 'lean': n.lean = list(v, line, 2, 'dx,dz'); break;
+        case 'n': n.bays = Math.max(1, Math.round(num(v, line))); break;
+        case 't': n.thick = num(v, line); break;
         case 'seg': n.seg = num(v, line); break;
         case 'pts': n.pts = pairs(v, line); break;
         case 'd': n.depth = num(v, line); break;
@@ -259,28 +262,31 @@ function parseNode(ast, type, args, line) {
   }
   // copies (mirror / array / grid / radial) are expanded to a list of positions at compile time
   if (mirror || array || grid || radial) {
-    let ps = [n.pos.slice()];
+    // each entry: [x, y, z, extra ry, mirror sign x, y, z]
+    let ps = [[...n.pos, 0, 1, 1, 1]];
     if (mirror) for (const ax of mirror) {
       const k = 'xyz'.indexOf(ax);
-      ps = ps.flatMap((p) => { const q = p.slice(); q[k] = -q[k]; return q[k] === p[k] ? [p] : [p, q]; });
+      ps = ps.flatMap((p) => { const q = p.slice(); q[k] = -q[k]; q[4 + k] = -q[4 + k]; return q[k] === p[k] ? [p] : [p, q]; });
     }
     if (array) {
       const [c, dx, dy, dz] = array;
-      ps = ps.flatMap((p) => Array.from({ length: c }, (_, i) => [p[0] + i * dx, p[1] + i * dy, p[2] + i * dz]));
+      ps = ps.flatMap((p) => Array.from({ length: c }, (_, i) => [p[0] + i * dx, p[1] + i * dy, p[2] + i * dz, ...p.slice(3)]));
     }
     if (grid) {
       const [nx, nz, dx, dz] = grid;
-      ps = ps.flatMap((p) => Array.from({ length: nx * nz }, (_, i) => [p[0] + (i % nx) * dx, p[1], p[2] + Math.floor(i / nx) * dz]));
+      ps = ps.flatMap((p) => Array.from({ length: nx * nz }, (_, i) => [p[0] + (i % nx) * dx, p[1], p[2] + Math.floor(i / nx) * dz, ...p.slice(3)]));
     }
     if (radial) {
       // n copies on a circle around the position (XZ plane); each copy is turned to face outward
       const [c, r] = radial;
       ps = ps.flatMap((p) => Array.from({ length: c }, (_, i) => {
         const a = (i / c) * 2 * Math.PI;
-        return [p[0] + r * Math.cos(a), p[1], p[2] + r * Math.sin(a), -(i / c) * 360];
+        return [p[0] + r * Math.cos(a), p[1], p[2] + r * Math.sin(a), p[3] - (i / c) * 360, ...p.slice(4)];
       }));
     }
-    n.copies = ps.map((p) => p.map((v) => +v.toFixed(6)));
+    const r6 = (v) => +v.toFixed(6);
+    n.copies = ps.map((p) => (radial ? p.slice(0, 4) : p.slice(0, 3)).map(r6));
+    n.mirrors = ps.map((p) => p.slice(4));
   }
   return n;
 }
@@ -414,6 +420,42 @@ export function compile(src, { format = 'esm' } = {}) {
       w(`  ${parent}.add(${n});`);
     }
   };
+  const usesTruss = (nodes) => nodes.some((n) => n.type === 'truss' || (n.children && usesTruss(n.children)));
+  if (usesTruss(ast.nodes)) {
+    // lattice tower segment: 4 corner posts, a ring per bay and X braces on every face,
+    // drawn as one InstancedMesh. Base center at the origin; top center shifted by (lx, lz).
+    w(`  const _beam = new THREE.BoxGeometry(1, 1, 1), _up = new THREE.Vector3(0, 1, 0), _o = new THREE.Object3D();`);
+    w(`  function truss(w0, w1, h, n, t, lx, lz, mat, cast) {`);
+    w(`    const C = [[1, 1], [-1, 1], [-1, -1], [1, -1]];`);
+    w(`    const P = (k, y) => { const f = y / h, hw = (w0 + (w1 - w0) * f) / 2; return new THREE.Vector3(lx * f + C[k][0] * hw, y, lz * f + C[k][1] * hw); };`);
+    w(`    const B = [];`);
+    w(`    for (let i = 0; i < n; i++) {`);
+    w(`      const y0 = (i * h) / n, y1 = ((i + 1) * h) / n;`);
+    w(`      for (let k = 0; k < 4; k++) {`);
+    w(`        const j = (k + 1) % 4;`);
+    w(`        B.push([P(k, y0), P(k, y1), t * 2.2], [P(k, y1), P(j, y1), t], [P(k, y0), P(j, y1), t * 0.7], [P(j, y0), P(k, y1), t * 0.7]);`);
+    w(`        if (i === 0) B.push([P(k, y0), P(j, y0), t]);`);
+    w(`      }`);
+    w(`    }`);
+    w(`    const m = new THREE.InstancedMesh(_beam, mat, B.length);`);
+    w(`    B.forEach(([a, b, th], i) => {`);
+    w(`      const d = b.clone().sub(a), len = d.length();`);
+    w(`      _o.position.copy(a).addScaledVector(d, 0.5);`);
+    w(`      _o.quaternion.setFromUnitVectors(_up, d.normalize());`);
+    w(`      _o.scale.set(th, len, th);`);
+    w(`      _o.updateMatrix(); m.setMatrixAt(i, _o.matrix);`);
+    w(`    });`);
+    w(`    m.computeBoundingSphere(); m.castShadow = m.receiveShadow = cast;`);
+    w(`    return m;`);
+    w(`  }`);
+  }
+  function trussCall(n, sign) {
+    const [w0 = 1, w1 = w0, h = 2] = n.dims || [];
+    const bays = n.bays ?? Math.max(1, Math.round(h / Math.max(0.01, ((w0 + w1) / 2) * 0.6)));
+    const t = n.thick ?? Math.max(0.01, ((w0 + w1) / 2) * 0.022);
+    const shadow = S.shadows && !n.flags.has('noshadow');
+    return `truss(${vec([w0, w1, h])}, ${bays}, ${f(t)}, ${sign === null ? 'm[0] * ' : ''}${f(n.lean[0] * (sign?.[0] ?? 1))}, ${sign === null ? 'm[2] * ' : ''}${f(n.lean[1] * (sign?.[2] ?? 1))}, ${matFor(n)}, ${shadow})`;
+  }
   const emitNode = (n, parent) => {
     if (n.type === 'light') return emitLight(n.light, parent);
     const id = v(n.type);
@@ -423,6 +465,7 @@ export function compile(src, { format = 'esm' } = {}) {
     const make = () => {
       if (n.type === 'group') return `new THREE.Group()`;
       if (n.type === 'use') return `Object.assign(O[${JSON.stringify(n.src)}].clone(), { visible: true })`;
+      if (n.type === 'truss') return trussCall(n, [1, 1, 1]);
       if (n.type === 'arrow') {
         const [dx = 0, dy = 1, dz = 0, len = 1] = n.dims || [];
         // wrapped in a group so rot= on the node does not reset the arrow's own direction
@@ -431,7 +474,12 @@ export function compile(src, { format = 'esm' } = {}) {
       const floor = n.flags.has('floor');
       return `mesh(${geometry(n)}, ${matFor(n)}, ${shadow && !floor}, ${shadow})`;
     };
-    if (n.copies) {
+    if (n.copies && n.type === 'truss') {
+      // trusses are rebuilt per copy so mirrored copies lean the mirrored way
+      w(`  const ${id} = place(new THREE.Group(), [0, 0, 0], [0, 0, 0], [1, 1, 1], ${parent});`);
+      const list = n.copies.map((p, i) => [p, n.mirrors[i]]);
+      w(`  for (const [p, m] of ${JSON.stringify(list)}) place(${trussCall(n, null)}, p, [${f(rot[0])}, ${f(rot[1])} + (p[3] || 0), ${f(rot[2])}], [${vec(n.scale)}], ${id});`);
+    } else if (n.copies) {
       // one group holds all copies; the group is what the name refers to
       w(`  const ${id} = place(new THREE.Group(), [0, 0, 0], [0, 0, 0], [1, 1, 1], ${parent});`);
       const proto = v('proto');

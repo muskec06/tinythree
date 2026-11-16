@@ -7,7 +7,7 @@ Yapay zekâ modelleri 3D sahneleri **yaklaşık 3 kat daha az token** ile, daha 
 
 [**Playground**](https://muskec06.github.io/tinythree/) · [Galeri](README.md#gallery) · [Dil referansı](spec/LANGUAGE.md) · [AI istemi](ai/SYSTEM_PROMPT.md) · [English](README.md)
 
-<img src="docs/hero.gif" width="720" alt="22 satırlık tinythree koduyla Eyfel Kulesi">
+<img src="docs/hero.gif" width="400" alt="57 satırlık tinythree koduyla 1.400 kafes kirişli Eyfel Kulesi">
 
 </div>
 
@@ -21,11 +21,11 @@ tinythree modele yalnızca sahneyi anlatan kısa bir yazım biçimi verir: ne ne
 
 <img src="docs/benchmark.png" width="760" alt="10 sahnede token karşılaştırması">
 
-10 sahne hem tinythree ile hem de elle, kısa ve deyimsel Three.js ile yazıldı. Sahnelerin beşi ünlü yapılar: Eyfel Kulesi, Pisa Kulesi, Giza Piramitleri, Stonehenge ve London Eye. İki sürüm de render edilerek aynı sahneyi çizdikleri doğrulandı.
+10 sahne hem tinythree ile hem de elle, kısa ve deyimsel Three.js ile yazıldı. Sahnelerin beşi ünlü yapılar: 1.400 kafes kirişli detaylı Eyfel Kulesi, Pisa Kulesi, Giza Piramitleri, Stonehenge ve London Eye. İki sürüm de render edilerek aynı sahneyi çizdikleri doğrulandı.
 
-- **Token:** Toplam 9.141'den 2.906'ya, yani **3,1 kat daha az** (sahneye göre 2,7× ile 3,8× arası).
+- **Token:** Toplam 10.944'ten 3.593'e, yani **3,0 kat daha az** (sahneye göre 2,7× ile 3,8× arası).
 - **Hız:** Üretim süresi çıktı tokenıyla neredeyse doğru orantılı. Bir sahne yaklaşık üçte bir sürede yazılır.
-- **Tek seferlik maliyet:** Dili öğreten istem yaklaşık 1.200 token tutar ve 2 sahneden sonra kendini çıkarır.
+- **Tek seferlik maliyet:** Dili öğreten istem yaklaşık 1.300 token tutar ve 2 sahneden sonra kendini çıkarır.
 
 Ölçümü yeniden almak için `npm run bench` yeterli. Ayrıntılar [bench/RESULTS.md](bench/RESULTS.md) dosyasında.
 

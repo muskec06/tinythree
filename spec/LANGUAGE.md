@@ -75,6 +75,7 @@ type [name] [size] [material | #color] [@position] [options...] [flags...]
 | `lathe` | `pts=r,y;r,y;...` | LatheGeometry |
 | `extrude` | `pts=x,y;x,y;...` + `d=depth` | ExtrudeGeometry |
 | `arrow` | `dx,dy,dz,length` | ArrowHelper |
+| `truss` | `w0,w1,h` | lattice tower segment as one InstancedMesh (see below) |
 | `group` | — | Group (children are indented) |
 | `use src [name]` | — | `.clone()` of an earlier named object |
 
@@ -85,6 +86,12 @@ Names are optional, unique, and only needed for `anim` and `use`.
 
 **Flags.** `floor` (rotate a plane to lie on the ground; receives shadows) · `noshadow` · `hidden`.
 A `hidden` object is a template: `use` clones of it are visible.
+
+**Truss.** `truss name w0,w1,h [lean=dx,dz] [n=bays] [t=beam]` builds a square steel lattice: four corner posts,
+a horizontal ring per bay and X braces on every face, tapering from width `w0` at the bottom to `w1` at the top.
+Its origin is the **base center** (not the middle). `lean` shifts the top center, so stacked segments with decreasing
+lean make a curved leg. By default bays are roughly square-ish (`h / (0.6 · avg width)`) and beams are 2.2% of the width.
+With `mirror=`, the lean is mirrored too, so `truss leg ... @5,0,5 lean=-1,-1 mirror=xz` gives four legs leaning inward.
 
 **Copies.** These expand one line into many. The object's name then refers to a group that holds all copies.
 
