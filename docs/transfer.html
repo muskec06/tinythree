@@ -1,0 +1,6 @@
+<!doctype html><meta charset="utf-8"><title>tinythree media transfer</title>
+<script>
+// Hands a file from this site to the page that embeds this one (used to attach the promo video to social posts).
+const src = new URLSearchParams(location.search).get('src') || 'tinythree-promo.mp4';
+fetch(new URL(src, location.href)).then((r) => r.blob()).then((b) => parent.postMessage({ ttVideo: b }, '*'));
+</script>
