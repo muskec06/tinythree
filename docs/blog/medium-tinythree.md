@@ -1,8 +1,8 @@
-# How I got AI to write 3D scenes with 3.5x fewer tokens
+# 3.5x fewer tokens for AI-generated 3D scenes: meet tinythree
 
 ## tinythree is a tiny scene language that compiles to Three.js. Here is why I built it, how I measured it, and where it falls short.
 
-![A detailed Eiffel Tower with about 1,400 lattice beams, written in 57 lines of tinythree](https://raw.githubusercontent.com/muskec06/tinythree/main/docs/hero.gif)
+![tinythree: a 3D scene language for AI models that compiles to Three.js](https://raw.githubusercontent.com/muskec06/tinythree/main/docs/social-preview.png)
 
 When I ask an AI model to build a 3D scene in Three.js, the result is usually good. What bothered me was the cost of getting there. Most of what the model types isn't the scene. It's ceremony: creating a renderer, wiring up orbit controls, handling window resizes, writing `new THREE.Mesh(new THREE.BoxGeometry(...), material)` and then `.position.set(...)` again and again.
 
@@ -36,11 +36,11 @@ box top 2,.1,1 @0,1,0 wood
 box leg .1,1,.1 @.9,.5,.4 wood mirror=xz
 ```
 
-That last line is one leg, mirrored across two axes, which gives you four. The compiler turns these three lines into the ordinary Three.js above. A scene file never needs a renderer, a camera loop or a resize handler; the compiler adds those.
+That last line is one leg, mirrored across two axes, which gives you four. The compiler turns these three lines into ordinary Three.js like the code above. A scene file never needs a renderer, a camera loop or a resize handler; the compiler adds those.
 
 ## A few rules I followed
 
-**One line per object.** Each line is a type, an optional name, a size, a material and a position. Options look like `key=value`. Everything else is a flag. Models pick up a shape like that very quickly.
+**One line per object.** Each line is a type, an optional name, a size, a material and a position. Options look like `key=value`. Everything else is a flag. The format is so regular that the whole language fits in a short prompt.
 
 **Repetition is a keyword, not a loop.** Real scenes are full of repeated things: legs, columns, solar panels, stones in a circle, cabins on a Ferris wheel. `mirror`, `array`, `grid` and `radial` turn one line into many copies, and `use` clones a group you defined earlier.
 
@@ -73,6 +73,8 @@ truss leg3 1.7,1.25,5.84 @2.9,5.76,2.9 lean=-1.5,-1.5 iron mirror=xz
 
 The whole scene, with the tower, arches, platforms, the Champ de Mars, the Seine, buildings, trees and drifting clouds, is 57 lines and about 1,400 lattice beams. The hand-written Three.js version is 165 lines.
 
+![The finished Eiffel Tower scene, 57 lines of tinythree](https://raw.githubusercontent.com/muskec06/tinythree/main/docs/hero.gif)
+
 ## How I measured it
 
 I wanted numbers I could defend, so I set a few rules for myself:
@@ -86,13 +88,13 @@ I wanted numbers I could defend, so I set a few rules for myself:
 
 Across 11 scenes, the total went from **14,151 tokens to 4,057, about 3.5 times fewer.** The range was wide, and the spread taught me more than the average did:
 
-| Scene | Three.js | tinythree | Fewer tokens |
-|---|---:|---:|---:|
-| Town square (parts, textures, glTF, label) | 3,207 | 464 | 6.9x |
-| Vector addition (education) | 466 | 122 | 3.8x |
-| London Eye | 1,011 | 305 | 3.3x |
-| Stonehenge | 1,120 | 375 | 3.0x |
-| Eiffel Tower | 3,028 | 1,117 | 2.7x |
+- **Town square** (parts, textures, a glTF model, a label): 3,207 → 464 tokens, **6.9x fewer**
+- **Vector addition** (education): 466 → 122 tokens, 3.8x fewer
+- **London Eye**: 1,011 → 305 tokens, 3.3x fewer
+- **Stonehenge**: 1,120 → 375 tokens, 3.0x fewer
+- **Eiffel Tower**: 3,028 → 1,117 tokens, 2.7x fewer
+
+![The town square: library parts, procedural textures, an animated glTF windmill and a text label. 464 tokens.](https://raw.githubusercontent.com/muskec06/tinythree/main/docs/gallery/town-square.jpg)
 
 The biggest savings came from scenes built out of *things*: houses, trees, textures, a model, a label. Each of those is one line in tinythree and a block of code in Three.js. The smallest savings came from geometry built from scratch, like the Eiffel Tower, because a good developer writes a helper function for the lattice once and reuses it.
 
@@ -100,11 +102,9 @@ There is a fixed cost too. The model has to learn the language, and the prompt t
 
 ![Cumulative tokens: Three.js versus tinythree including its prompt; the lines cross before the second scene](https://raw.githubusercontent.com/muskec06/tinythree/main/docs/blog/img/break-even.png)
 
-![Town square scene](https://raw.githubusercontent.com/muskec06/tinythree/main/docs/gallery/town-square.jpg)
-
 ## Fewer tokens, faster answers
 
-Generation time grows roughly in line with output tokens. So a model writing a third of the tokens finishes in roughly a third of the time. Edits benefit even more: moving a building or changing a material means rewriting one short line, not a block of JavaScript.
+Generation time grows roughly in line with output tokens. So a model writing a third of the tokens finishes in roughly a third of the time. Edits benefit too: moving a building or changing a material means rewriting one short line, not a block of JavaScript.
 
 ## Video, frame by frame
 
@@ -120,8 +120,8 @@ Every tinythree scene compiles to a function of time, so any frame can be render
 
 The playground runs in your browser with nothing to install. Pick a scene, edit a line and watch it update:
 
-**Playground:** https://muskec06.github.io/tinythree/
+**Playground:** [muskec06.github.io/tinythree](https://muskec06.github.io/tinythree/)
 
-**Code (MIT, zero dependencies):** https://github.com/muskec06/tinythree
+**Code (MIT, zero dependencies):** [github.com/muskec06/tinythree](https://github.com/muskec06/tinythree)
 
 If you work with Three.js, AI tools, architecture or education, I'd really like to hear what you'd build with it and what's missing.
