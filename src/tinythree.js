@@ -2,7 +2,7 @@
 // Zero dependencies. Runs in the browser and in Node (ESM).
 // https://github.com/muskec06/tinythree  ·  MIT License
 
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 export const THREE_VERSION = '0.187.0';
 export const DEFAULT_THREE_URL = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/`;
 
@@ -38,7 +38,7 @@ const IDENT = /^[A-Za-z_][\w-]*$/;
 const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow'];
 const COMMANDS = ['scene', 'amb', 'hemi', 'sun', 'point', 'mat', 'group', 'use', 'anim', 'js', 'tick', ...PRIMS];
 const FLAGS = ['floor', 'noshadow', 'hidden'];
-const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'seg', 'pts', 'd', 'name'];
+const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'seg', 'pts', 'd', 'name'];
 
 const isNum = (t) => NUM.test(t);
 const isList = (t) => t.split(',').every(isNum);
@@ -208,7 +208,7 @@ function parseMat(ast, args, line) {
 
 function parseNode(ast, type, args, line) {
   const n = { type, line, name: null, dims: null, mat: null, color: null, pos: [0, 0, 0], rot: [0, 0, 0], scale: [1, 1, 1],
-    flags: new Set(), copies: null, seg: null, pts: null, depth: null, src: null, children: type === 'group' ? [] : null };
+    flags: new Set(), copies: null, arc: null, seg: null, pts: null, depth: null, src: null, children: type === 'group' ? [] : null };
   let rest = args;
   if (type === 'use') {
     if (!rest[0]) throw new TinyThreeError('use needs an object name', line);
@@ -219,7 +219,7 @@ function parseNode(ast, type, args, line) {
   if (rest[0] && IDENT.test(rest[0]) && !ast.mats[rest[0]] && !FLAGS.includes(rest[0]) && !rest[0].includes('=')) {
     n.name = rest[0]; rest = rest.slice(1);
   }
-  let mirror = null, array = null, grid = null;
+  let mirror = null, array = null, grid = null, radial = null;
   for (const t of rest) {
     const p = kv(t);
     if (t.startsWith('@')) n.pos = list(t.slice(1), line, 3, 'position x,y,z');
@@ -238,6 +238,8 @@ function parseNode(ast, type, args, line) {
         case 'mirror': if (!/^[xyz]{1,3}$/.test(v)) throw new TinyThreeError(`bad mirror "${v}"`, line, 'use x, z, xz ...'); mirror = v; break;
         case 'array': array = list(v, line, 4, 'n,dx,dy,dz'); break;
         case 'grid': grid = list(v, line, 4, 'nx,nz,dx,dz'); break;
+        case 'radial': radial = list(v, line, 2, 'n,radius'); break;
+        case 'arc': n.arc = num(v, line); break;
         case 'seg': n.seg = num(v, line); break;
         case 'pts': n.pts = pairs(v, line); break;
         case 'd': n.depth = num(v, line); break;
@@ -255,8 +257,8 @@ function parseNode(ast, type, args, line) {
     if (ast.mats[n.name]) throw new TinyThreeError(`"${n.name}" is already a material name`, line);
     ast.names.add(n.name);
   }
-  // copies (mirror / array / grid) are expanded to a list of positions at compile time
-  if (mirror || array || grid) {
+  // copies (mirror / array / grid / radial) are expanded to a list of positions at compile time
+  if (mirror || array || grid || radial) {
     let ps = [n.pos.slice()];
     if (mirror) for (const ax of mirror) {
       const k = 'xyz'.indexOf(ax);
@@ -269,6 +271,14 @@ function parseNode(ast, type, args, line) {
     if (grid) {
       const [nx, nz, dx, dz] = grid;
       ps = ps.flatMap((p) => Array.from({ length: nx * nz }, (_, i) => [p[0] + (i % nx) * dx, p[1], p[2] + Math.floor(i / nx) * dz]));
+    }
+    if (radial) {
+      // n copies on a circle around the position (XZ plane); each copy is turned to face outward
+      const [c, r] = radial;
+      ps = ps.flatMap((p) => Array.from({ length: c }, (_, i) => {
+        const a = (i / c) * 2 * Math.PI;
+        return [p[0] + r * Math.cos(a), p[1], p[2] + r * Math.sin(a), -(i / c) * 360];
+      }));
     }
     n.copies = ps.map((p) => p.map((v) => +v.toFixed(6)));
   }
@@ -319,7 +329,7 @@ function geometry(n) {
     case 'sphere': return `new THREE.SphereGeometry(${f(d[0] ?? 0.5)}, ${seg ?? 32}, ${Math.max(8, Math.round((seg ?? 32) / 2))})`;
     case 'cyl': { const [rt = 0.5, rb = rt, h = 1] = d.length === 2 ? [d[0], d[0], d[1]] : d; return `new THREE.CylinderGeometry(${vec([rt, rb, h])}, ${seg ?? 32})`; }
     case 'cone': { const [r = 0.5, h = 1] = d; return `new THREE.ConeGeometry(${vec([r, h])}, ${seg ?? 32})`; }
-    case 'torus': { const [R = 0.5, r = 0.15] = d; return `new THREE.TorusGeometry(${vec([R, r])}, ${Math.max(8, Math.round((seg ?? 64) / 4))}, ${seg ?? 64})`; }
+    case 'torus': { const [R = 0.5, r = 0.15] = d; return `new THREE.TorusGeometry(${vec([R, r])}, ${Math.max(8, Math.round((seg ?? 64) / 4))}, ${seg ?? 64}${n.arc !== null ? `, ${f(n.arc * D2R)}` : ''})`; }
     case 'plane': { const [w = 1, h = w] = d; return `new THREE.PlaneGeometry(${vec([w, h])})`; }
     case 'capsule': { const [r = 0.25, l = 0.5] = d; return `new THREE.CapsuleGeometry(${vec([r, l])}, 8, ${seg ?? 16})`; }
     case 'lathe': return `new THREE.LatheGeometry([${n.pts.map(([x, y]) => `new THREE.Vector2(${f(x)}, ${f(y)})`).join(', ')}], ${seg ?? 48})`;
@@ -427,7 +437,8 @@ export function compile(src, { format = 'esm' } = {}) {
       const proto = v('proto');
       w(`  const ${proto} = ${make()};`);
       if (n.children) { n.children.forEach((c) => emitNode(c, proto)); }
-      w(`  for (const p of ${JSON.stringify(n.copies)}) place(${proto}.clone(), p, [${vec(rot)}], [${vec(n.scale)}], ${id});`);
+      const turned = n.copies.some((p) => p.length > 3);
+      w(`  for (const p of ${JSON.stringify(n.copies)}) place(${proto}.clone(), p, [${f(rot[0])}, ${f(rot[1])}${turned ? ' + (p[3] || 0)' : ''}, ${f(rot[2])}], [${vec(n.scale)}], ${id});`);
     } else {
       w(`  const ${id} = place(${make()}, [${vec(n.pos)}], [${vec(rot)}], [${vec(n.scale)}], ${parent});`);
       if (n.children) n.children.forEach((c) => emitNode(c, id));

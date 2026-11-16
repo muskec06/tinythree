@@ -1,0 +1,83 @@
+{
+  "prompt": 1188,
+  "boiler": 156,
+  "rows": [
+    {
+      "name": "atom",
+      "js": 636,
+      "t3": 234,
+      "ratio": 2.717948717948718,
+      "ratioNoBoiler": 2.051282051282051
+    },
+    {
+      "name": "building",
+      "js": 994,
+      "t3": 322,
+      "ratio": 3.0869565217391304,
+      "ratioNoBoiler": 2.6024844720496896
+    },
+    {
+      "name": "eiffel-tower",
+      "js": 1225,
+      "t3": 430,
+      "ratio": 2.8488372093023258,
+      "ratioNoBoiler": 2.486046511627907
+    },
+    {
+      "name": "giza-pyramids",
+      "js": 830,
+      "t3": 293,
+      "ratio": 2.832764505119454,
+      "ratioNoBoiler": 2.3003412969283277
+    },
+    {
+      "name": "leaning-tower-pisa",
+      "js": 977,
+      "t3": 316,
+      "ratio": 3.0917721518987342,
+      "ratioNoBoiler": 2.598101265822785
+    },
+    {
+      "name": "london-eye",
+      "js": 1011,
+      "t3": 305,
+      "ratio": 3.314754098360656,
+      "ratioNoBoiler": 2.80327868852459
+    },
+    {
+      "name": "solar-farm",
+      "js": 914,
+      "t3": 253,
+      "ratio": 3.6126482213438735,
+      "ratioNoBoiler": 2.9960474308300395
+    },
+    {
+      "name": "stonehenge",
+      "js": 1120,
+      "t3": 375,
+      "ratio": 2.986666666666667,
+      "ratioNoBoiler": 2.570666666666667
+    },
+    {
+      "name": "table-lamp",
+      "js": 968,
+      "t3": 256,
+      "ratio": 3.78125,
+      "ratioNoBoiler": 3.171875
+    },
+    {
+      "name": "vectors",
+      "js": 466,
+      "t3": 122,
+      "ratio": 3.819672131147541,
+      "ratioNoBoiler": 2.540983606557377
+    }
+  ],
+  "total": {
+    "name": "total",
+    "js": 9141,
+    "t3": 2906,
+    "ratio": 3.1455609084652445,
+    "ratioNoBoiler": 2.6087405368203718
+  }
+}

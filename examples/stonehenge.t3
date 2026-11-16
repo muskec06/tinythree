@@ -1,0 +1,21 @@
+// Stonehenge — sarsen circle with lintels, trilithon horseshoe and bluestones
+scene bg=#f6c7a1 cam=11,4.5,11 look=0,1,0 orbit shadows fog=#f6c7a1,20,70 dur=16s
+hemi #ffe9d6 #50643a .7
+sun 12,9,-10 3 #ffc28a area=10
+mat sarsen #9a958a r=1 flat
+mat blue #6f7782 r=1 flat
+plane 80 #7d9a52 floor
+box sarsen .75,2.1,.45 @0,1.05,0 sarsen radial=30,5
+box lintel 1.1,.3,.45 @0,2.25,0 ry=90 sarsen radial=30,5
+box bluestone .35,1.1,.3 @0,.55,0 blue radial=24,3.9
+group tri hidden
+  box up .75,3,.55 @-.45,1.5,0 sarsen
+  box up2 .75,3,.55 @.45,1.5,0 sarsen
+  box top 1.8,.35,.6 @0,3.15,0 sarsen
+use tri t1 @0,0,-2.6
+use tri t2 @-2,0,-1.5 ry=50
+use tri t3 @2,0,-1.5 ry=-50
+use tri t4 @-2.4,0,.8 ry=95
+use tri t5 @2.4,0,.8 ry=-95
+box altar 1.6,.25,.5 @0,.12,-.6 blue
+anim cam orbit 32s

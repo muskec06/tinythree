@@ -1,0 +1,14 @@
+// Pyramids of Giza — Khufu, Khafre, Menkaure and the queens' pyramids, 1 unit ≈ 20 m
+scene bg=#f4c58d cam=26,9,30 look=-6,2,8 orbit shadows fog=#f4c58d,40,110 dur=16s
+hemi #fff1d6 #b88a52 .7
+sun -20,12,14 3 #ffd9a0 area=30
+mat sand #d9b680 r=1 flat
+mat stone #cfa56a r=.9 flat
+plane 200 sand floor
+cone khufu 8.13,7.3 @0,3.65,0 seg=4 ry=45 stone
+cone khafre 7.6,6.8 @-11,3.4,10 seg=4 ry=45 stone
+cone khafre_cap 1.1,.98 @-11,6.31,10 seg=4 ry=45 #efe3cf
+cone menkaure 3.64,3.25 @-19,1.63,21 seg=4 ry=45 stone
+cone queen 1.2,1.05 @8,.53,-4 seg=4 ry=45 stone array=3,0,0,3.4
+cone mqueen .95,.85 @-19,.43,26 seg=4 ry=45 stone array=3,2.6,0,0
+anim cam orbit 40s

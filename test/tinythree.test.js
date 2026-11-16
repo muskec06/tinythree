@@ -96,3 +96,17 @@ test('standalone html exposes the scene', () => {
   assert.match(html, /background:transparent/);
   assert.equal(parse('scene dur=3s').scene.dur, 3);
 });
+
+test('radial copies sit on a circle and face outward', () => {
+  const b = build('box r @0,1,0 radial=4,2');
+  const c = b.objects.r.children;
+  assert.equal(c.length, 4);
+  assert.ok(Math.abs(c[1].position.z - 2) < 1e-6 && Math.abs(c[1].position.x) < 1e-6);
+  assert.ok(Math.abs(c[1].rotation.y + Math.PI / 2) < 1e-6);
+  assert.ok(c.every((m) => Math.abs(Math.hypot(m.position.x, m.position.z) - 2) < 1e-6));
+});
+
+test('torus arc makes a partial ring', () => {
+  const b = build('torus t 1,.1 arc=180');
+  assert.ok(Math.abs(b.objects.t.geometry.parameters.arc - Math.PI) < 1e-6);
+});

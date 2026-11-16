@@ -41,4 +41,7 @@ const md = [
   'Tokenizer: OpenAI o200k_base via js-tiktoken (Claude\'s tokenizer differs; ratios are similar because both are BPE).',
 ].join('\n');
 console.log(md);
-if (process.argv.includes('--md')) fs.writeFileSync(path.join(root, 'bench/RESULTS.md'), '# Benchmark results\n\n' + md + '\n');
+if (process.argv.includes('--md')) {
+  fs.writeFileSync(path.join(root, 'bench/RESULTS.md'), '# Benchmark results\n\n' + md + '\n');
+  fs.writeFileSync(path.join(root, 'bench/results.json'), JSON.stringify({ prompt, boiler, rows, total }, null, 2) + '\n');
+}

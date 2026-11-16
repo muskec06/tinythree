@@ -1,4 +1,4 @@
-# tinythree language reference — v0.1
+# tinythree language reference — v0.2
 
 tinythree (`.t3`) describes a Three.js scene in as few tokens as possible while staying
 readable to people. The compiler (`src/tinythree.js`) turns it into plain Three.js code.
@@ -69,7 +69,7 @@ type [name] [size] [material | #color] [@position] [options...] [flags...]
 | `sphere` | `r` | SphereGeometry |
 | `cyl` | `r,h` or `rTop,rBottom,h` | CylinderGeometry |
 | `cone` | `r,h` | ConeGeometry |
-| `torus` | `R,tube` | TorusGeometry |
+| `torus` | `R,tube` (+ `arc=deg` for a partial ring) | TorusGeometry |
 | `plane` | `w,h` | PlaneGeometry |
 | `capsule` | `r,length` | CapsuleGeometry |
 | `lathe` | `pts=r,y;r,y;...` | LatheGeometry |
@@ -81,7 +81,7 @@ type [name] [size] [material | #color] [@position] [options...] [flags...]
 **Name.** The first plain word after the type is the name, unless it is a material or a flag.
 Names are optional, unique, and only needed for `anim` and `use`.
 
-**Options.** `rot=x,y,z` (degrees) or `rx=`/`ry=`/`rz=` · `s=k` or `s=x,y,z` · `seg=n` (curve detail) · `name=...`
+**Options.** `rot=x,y,z` (degrees) or `rx=`/`ry=`/`rz=` · `s=k` or `s=x,y,z` · `seg=n` (curve detail; `seg=4` turns a cone or cylinder into a square pyramid or tapered tower) · `arc=deg` (torus only) · `name=...`
 
 **Flags.** `floor` (rotate a plane to lie on the ground; receives shadows) · `noshadow` · `hidden`.
 A `hidden` object is a template: `use` clones of it are visible.
@@ -93,6 +93,7 @@ A `hidden` object is a template: `use` clones of it are visible.
 | `mirror=x` / `z` / `xz` / `xyz` | adds copies with the position mirrored across those axes (`xz` → 4 copies) |
 | `array=n,dx,dy,dz` | `n` copies, each shifted by `dx,dy,dz` |
 | `grid=nx,nz,dx,dz` | `nx × nz` copies on the ground plane |
+| `radial=n,r` | `n` copies on a circle of radius `r` around the position (XZ plane); each copy is turned so its local +x points outward — columns, stone circles, spokes, pods |
 
 ## 6. Animation
 

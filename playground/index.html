@@ -60,7 +60,7 @@
 <footer>
   <span>tinythree <span class="n" id="tt">0</span> tok</span>
   <span>compiled Three.js <span class="n" id="tj">0</span> tok</span>
-  <a class="ratio" href="https://github.com/muskec06/tinythree/blob/main/bench/RESULTS.md" target="_blank" rel="noopener">≈3.4× fewer tokens than hand-written Three.js →</a>
+  <a class="ratio" href="https://github.com/muskec06/tinythree/blob/main/bench/RESULTS.md" target="_blank" rel="noopener">≈3.1× fewer tokens than hand-written Three.js →</a>
   <span class="sp" style="flex:1"></span>
   <span>token counts are estimates · drag to orbit</span>
 </footer>
@@ -69,7 +69,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { parse, compile, mount, toHTML } from '../src/tinythree.js';
 
-const EXAMPLES = ['table-lamp', 'solar-farm', 'building', 'atom', 'vectors'];
+const EXAMPLES = ['eiffel-tower', 'leaning-tower-pisa', 'giza-pyramids', 'stonehenge', 'london-eye', 'building', 'solar-farm', 'table-lamp', 'atom', 'vectors'];
 const $ = (id) => document.getElementById(id);
 const src = $('src'), out = $('out'), err = $('err'), view = $('view');
 let api = null, timer = 0, fresh = true;

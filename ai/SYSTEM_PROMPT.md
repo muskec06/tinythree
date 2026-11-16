@@ -22,7 +22,7 @@ Lights may be indented in a group.
 | `sphere` | r (.5) |
 | `cyl` | r,h or rTop,rBottom,h |
 | `cone` | r,h |
-| `torus` | R,tube |
+| `torus` | R,tube — `arc=180` for a half ring |
 | `plane` | w,h — add `floor` to lay it flat |
 | `capsule` | r,length |
 | `lathe` | `pts=r,y;r,y;...` (revolved profile) |
@@ -32,7 +32,7 @@ Lights may be indented in a group.
 | `use src [name]` | clone of an object/group defined above |
 
 Options: `rot=x,y,z` or `rx= ry= rz=` · `s=k` or `s=x,y,z` · `seg=n`
-Copies (one name = the whole set): `mirror=x|z|xz` (mirror position across axes) · `array=n,dx,dy,dz` · `grid=nx,nz,dx,dz`
+Copies (one name = the whole set): `mirror=x|z|xz` (mirror position across axes) · `array=n,dx,dy,dz` · `grid=nx,nz,dx,dz` · `radial=n,r` (circle of radius r around the position, each copy turned so its local +x points outward)
 Flags: `floor` · `noshadow` · `hidden` (template for `use`; clones become visible)
 Name is optional; it must be unique and is needed only for `anim`/`use`.
 
@@ -70,7 +70,8 @@ anim neon glow wave .5 2s
 ```
 
 ## Rules
-- Prefer `mirror`/`array`/`grid`/`use` over repeating lines.
+- Prefer `mirror`/`array`/`grid`/`radial`/`use` over repeating lines.
+- Square pyramid / tapered tower: `cone r,h seg=4 ry=45` or `cyl rTop,rBottom,h seg=4 ry=45`.
 - Position is the object's center: a box of height h on the floor sits at y=h/2.
 - Keep numbers short: `.5` not `0.50`.
 - If the compiler reports `line N: ...`, fix only that line.

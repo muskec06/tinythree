@@ -1,0 +1,20 @@
+// London Eye at night — 135 m wheel with 32 capsules, 1 unit ≈ 10 m
+scene bg=#0b1430 cam=13,5,14 look=0,6,0 orbit shadows dur=30s
+amb .35
+hemi #4a6cff #0b1430 .4
+sun -6,10,12 1.5 #9fb6ff area=12
+mat steel #dfe6f0 m=.7 r=.3
+mat neon #36c6ff glow=1.5
+mat pod #e8f6ff glow=.6 op=.9
+mat water #10264f m=.4 r=.2
+plane 80 water floor
+group wheel @0,7,-.4 rx=90
+  torus rim 6,.08 rx=90 neon
+  torus rim2 5.6,.05 rx=90 steel
+  cyl spoke .012,6 @0,0,0 rz=90 steel radial=32,3
+  cyl hub .45,.9 steel
+  capsule pod .26,.4 @0,.4,0 pod radial=32,6.25
+box leg .25,8.4,.25 @-1.5,3.5,-2.3 rz=-21 rx=26 steel
+box leg2 .25,8.4,.25 @1.5,3.5,-2.3 rz=21 rx=26 steel
+anim wheel rot.y spin 30s
+anim neon glow wave .6 2s

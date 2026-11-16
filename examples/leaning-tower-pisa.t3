@@ -1,0 +1,20 @@
+// Leaning Tower of Pisa — 8 storeys, 3.97° tilt, 1 unit ≈ 8 m
+scene bg=#a9d3f5 cam=6.5,3.4,6.5 look=0,2.9,0 orbit shadows dur=12s
+hemi #ffffff #8a9a6a .8
+sun 8,12,5 2.5 area=8
+mat marble #efe9dc r=.6
+mat shade #d9d0bd r=.8
+mat roof #c9bfae r=.7
+plane 60 #79a85a floor
+group storey hidden
+  cyl wall .92,.66 @0,.33,0 shade
+  cyl col .035,.6 @0,.3,0 marble radial=24,1.02
+  cyl cornice 1.1,.06 @0,.66,0 marble
+group tower rz=-3.97 s=.75,1,.75
+  cyl base 1.08,1.1 @0,.55,0 marble
+  cyl blind .04,1 @0,.55,0 marble radial=15,1.1
+  use storey s1 @0,1.1,0 array=6,0,.66,0
+  cyl belfry .78,.62 @0,5.37,0 marble
+  cyl bcol .03,.55 @0,5.37,0 marble radial=12,.82
+  cyl roof .82,.08 @0,5.72,0 roof
+anim cam orbit 24s
