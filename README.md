@@ -23,7 +23,7 @@ Designed so AI models can write 3D scenes with **~3× fewer tokens**, faster and
 
 When a language model writes Three.js, most of what it types is ceremony: `new THREE.Mesh(new THREE.BoxGeometry(…), material)`, `.position.set(…)`, render loops, resize handlers, easing math. Output tokens are the slowest and most expensive part of a model's answer.
 
-tinythree gives the model a notation that only describes the scene: what is where, made of what, moving how. A zero-dependency compiler turns it into plain Three.js. The idea comes from [sand3d](https://github.com/Sandflow-ai/sand3d), which does the same for Blender. tinythree targets the web, and frame-exact video as well.
+tinythree gives the model a notation that only describes the scene: what is where, made of what, moving how. A zero-dependency compiler turns it into plain Three.js. It targets the web, and frame-exact video as well.
 
 <table>
 <tr><th>tinythree: 57 lines, 1,117 tokens</th><th>Three.js: 165 lines, 3,028 tokens</th></tr>
@@ -221,12 +221,19 @@ test/                 node:test suite
 
 ## Roadmap
 
-- [ ] **Part library:** doors, windows, stairs, trees, people, vehicles (`use lib:door`)
-- [ ] **Text labels** and 2D overlays for educational videos
-- [ ] **Short syntax for models and textures** (`model chair.glb`, `mat brick map=brick.jpg`); today they work through `js` blocks
-- [ ] **CSG** booleans for openings in walls
-- [ ] **AI eval:** first-try success rate across models, plus counts from Claude's own token counter
-- [ ] **Claude skill and MCP server:** write, compile and render in one step
+These features work today through `js` blocks. Each will get a one-line syntax. The table shows how many tokens that saves, measured the same way as the benchmark.
+
+| planned syntax | example | tokens today → planned | prompt cost |
+|---|---|---:|---:|
+| **Text labels** (in videos too) | `text t "F = m·a" @0,1.5,0 s=.5` | 116 → 22 (**5.3×**) | +31 |
+| **glTF / GLB models** | `model chair chair.glb @1,0,2 ry=90` | 80 → 14 (**5.7×**) | +34 |
+| **Image textures** | `mat brick #fff map=brick.jpg rep=4,2` | 70 → 13 (**5.4×**) | +12 |
+| **Wall openings (CSG)** | `box wall 6,3,.3 wall cut=door` | 143 → 41 (**3.5×**) | +16 |
+| **Part library** | `use lib:tree a @-10,0,14` | 85 → 36 (**2.4×**) | +21 |
+
+Also planned:
+- **Claude skill and MCP server** that write, compile and render a scene in one step.
+- **First-try success rate** across several models, measured with each provider's own token counter.
 
 ## Contributing
 
@@ -235,7 +242,6 @@ Issues and pull requests are welcome, especially new example scenes. A good exam
 ## Acknowledgments
 
 - [three.js](https://threejs.org), which does all the real work.
-- [sand3d](https://github.com/Sandflow-ai/sand3d), which showed that an LLM-first modeling language can cut tokens by several times.
 
 ## License
 

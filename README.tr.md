@@ -15,7 +15,7 @@ Yapay zekâ modelleri 3D sahneleri **yaklaşık 3 kat daha az token** ile, daha 
 
 Bir dil modeli Three.js yazarken çıktısının büyük kısmı tekrar eden kalıplara gider: `new THREE.Mesh(new THREE.BoxGeometry(…))`, `.position.set(…)`, render döngüsü, pencere boyutu ayarı. Çıktı tokenları ise yanıtın en yavaş ve en pahalı kısmıdır.
 
-tinythree modele yalnızca sahneyi anlatan kısa bir yazım biçimi verir: ne nerede, neyden yapılmış, nasıl hareket ediyor. Bağımlılığı olmayan derleyici bunu düz Three.js'e çevirir. Fikir, aynı işi Blender için yapan [sand3d](https://github.com/Sandflow-ai/sand3d)'den geliyor. tinythree ise web'i ve kare kare videoyu hedefliyor.
+tinythree modele yalnızca sahneyi anlatan kısa bir yazım biçimi verir: ne nerede, neyden yapılmış, nasıl hareket ediyor. Bağımlılığı olmayan derleyici bunu düz Three.js'e çevirir. Web'i ve kare kare videoyu hedefliyor.
 
 ## Ölçüm
 
