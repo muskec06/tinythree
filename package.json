@@ -1,6 +1,6 @@
 {
   "name": "tinythree",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A tiny, token-efficient 3D scene language that compiles to Three.js — write 3D scenes with ~3x fewer LLM tokens.",
   "type": "module",
   "main": "src/tinythree.js",

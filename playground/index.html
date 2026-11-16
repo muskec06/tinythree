@@ -60,7 +60,7 @@
 <footer>
   <span>tinythree <span class="n" id="tt">0</span> tok</span>
   <span>compiled Three.js <span class="n" id="tj">0</span> tok</span>
-  <a class="ratio" href="https://github.com/muskec06/tinythree/blob/main/bench/RESULTS.md" target="_blank" rel="noopener">≈3× fewer tokens than hand-written Three.js →</a>
+  <a class="ratio" href="https://github.com/muskec06/tinythree/blob/main/bench/RESULTS.md" target="_blank" rel="noopener">≈3.5× fewer tokens than hand-written Three.js →</a>
   <span class="sp" style="flex:1"></span>
   <span>token counts are estimates · drag to orbit</span>
 </footer>
@@ -69,10 +69,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { parse, compile, mount, toHTML } from '../src/tinythree.js';
 
-const EXAMPLES = ['eiffel-tower', 'leaning-tower-pisa', 'giza-pyramids', 'stonehenge', 'london-eye', 'building', 'solar-farm', 'table-lamp', 'atom', 'vectors'];
+const EXAMPLES = ['town-square', 'eiffel-tower', 'leaning-tower-pisa', 'giza-pyramids', 'stonehenge', 'london-eye', 'building', 'solar-farm', 'table-lamp', 'atom', 'vectors'];
 const $ = (id) => document.getElementById(id);
 const src = $('src'), out = $('out'), err = $('err'), view = $('view');
-let api = null, timer = 0, fresh = true;
+let api = null, timer = 0, fresh = true, base = '';
 
 // Rough BPE-like estimate: words, numbers and each punctuation mark count as one token.
 const tokens = (s) => (s.match(/[A-Za-z_]+|\d+|[^\sA-Za-z_\d]/g) || []).length;
@@ -80,7 +80,7 @@ const tokens = (s) => (s.match(/[A-Za-z_]+|\d+|[^\sA-Za-z_\d]/g) || []).length;
 function run() {
   const text = src.value;
   let code;
-  try { code = compile(parse(text), { format: 'fn' }); err.textContent = ''; }
+  try { code = compile(parse(text), { format: 'fn', base }); err.textContent = ''; }
   catch (e) { err.textContent = e.message; return; }
   out.textContent = code;
   const a = tokens(text.replace(/\/\/.*$/gm, '')), b = tokens(code.replace(/\/\/.*$/gm, ''));
@@ -110,7 +110,7 @@ $('play').onclick = () => { if (!api) return; const p = $('play').textContent ==
 $('restart').onclick = () => { api?.seek(0); api?.play(); $('play').textContent = '⏸'; };
 $('dl').onclick = () => {
   try {
-    const blob = new Blob([toHTML(src.value)], { type: 'text/html' });
+    const blob = new Blob([toHTML(src.value, { base: new URL(base || './', location.href).href })], { type: 'text/html' });
     const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: ($('ex').value || 'scene') + '.html' });
     a.click(); URL.revokeObjectURL(a.href);
   } catch (e) { err.textContent = e.message; }
@@ -126,6 +126,7 @@ const ex = $('ex');
 ex.innerHTML = EXAMPLES.map((n) => `<option>${n}</option>`).join('');
 async function load(name) {
   src.value = await (await fetch(`../examples/${name}.t3`)).text();
+  base = '../examples/';
   fresh = true;
   run();
 }
@@ -134,7 +135,7 @@ const start = location.hash.slice(1);
 let saved = null;
 try { saved = localStorage.getItem('tt-src'); } catch {}
 if (EXAMPLES.includes(start)) { ex.value = start; load(start); }
-else if (saved) { ex.value = ''; src.value = saved; run(); }
+else if (saved) { ex.value = ''; src.value = saved; base = '../examples/'; run(); }
 else load(EXAMPLES[0]);
 </script>
 </body>

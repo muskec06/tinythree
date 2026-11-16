@@ -1,0 +1,26 @@
+// Town square — library parts, procedural textures, a glTF model and text labels
+scene bg=#bfe0f7 cam=22,13,24 look=0,1,0 fov=45 orbit shadows fog=#bfe0f7,50,120 dur=12s
+hemi #ffffff #6a7a50 .8
+sun 15,25,10 2.6 area=22
+mat grass map=grass rep=30,30
+mat paving map=tiles rep=8,8
+mat brick map=brick rep=3,2
+mat wood map=wood
+plane 120 grass floor
+box plaza 22,.06,22 @0,.03,0 paving
+box well 2.4,.8,2.4 @0,.4,0 brick
+box roof 2.8,.12,2.8 @0,2.2,0 wood
+cyl post .08,1.4 @1.1,1.5,1.1 wood mirror=xz
+use lib:house h1 @-7,0,-15 array=3,7,0,0
+use lib:house h2 @-16,0,-5 ry=90 array=2,0,0,8
+use lib:tree t @-10,0,10 array=5,5,0,0
+use lib:bench b @-4,0,-5 array=3,4,0,0
+use lib:streetlamp l @-10,0,-10 grid=2,2,20,20
+use lib:person p1 @2,0,3 ry=-30
+use lib:person p2 @3,0,2.4 ry=150
+use lib:car car @14,0,0 ry=90
+use lib:fence f @12,0,-12 array=3,0,0,2.6 ry=90
+model mill assets/windmill.glb @14,0,-12 ry=-30 s=1.5 play
+text sign "Town Square" @0,4,0 #ffffff bg=#1b2a4a s=1.4
+anim car pos.z to 9 6s ease=io
+anim cam orbit 48s

@@ -91,6 +91,34 @@
     "errors": []
   },
   {
+    "area": "Text",
+    "feature": "text labels (canvas sprites, also in videos)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Loaders",
+    "feature": "glTF / GLB models with their animations (frame-exact)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Texture",
+    "feature": "image and procedural textures with repeat (checker, grid, brick, tiles, wood, grass, noise)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
+    "area": "Scene graph",
+    "feature": "part library: 13 real-size parts (trees, people, cars, houses, doors, windows, stairs\u2026)",
+    "level": "native",
+    "works": true,
+    "errors": []
+  },
+  {
     "area": "Geometry",
     "feature": "torus knot, polyhedra, ring, circle, tube along a curve, shape, edges",
     "level": "js",

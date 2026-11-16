@@ -3,7 +3,7 @@
 # tinythree
 
 **A tiny 3D scene language that compiles to Three.js.**<br>
-Designed so AI models can write 3D scenes with **~3× fewer tokens**, faster and cheaper.
+Designed so AI models can write 3D scenes with **3–7× fewer tokens**, faster and cheaper.
 
 [![CI](https://github.com/muskec06/tinythree/actions/workflows/ci.yml/badge.svg)](https://github.com/muskec06/tinythree/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -66,24 +66,27 @@ The tower has real proportions (1 unit = 10 m) and is built from about 1,400 lat
 
 ## Benchmark
 
-<img src="docs/benchmark.png" width="760" alt="Bar chart: tinythree uses 2.7× to 3.8× fewer tokens than hand-written Three.js across 10 scenes, 3.0× in total">
+<img src="docs/benchmark.png" width="760" alt="Bar chart: tinythree uses 2.7× to 6.9× fewer tokens than hand-written Three.js across 11 scenes, 3.5× in total">
 
-Each of the 10 scenes was written once in tinythree and once as compact, idiomatic Three.js. Loops and helper functions were allowed in the Three.js versions, and both versions were rendered to confirm they draw the same scene.
+Each of the 11 scenes was written once in tinythree and once as compact, idiomatic Three.js. Loops and helper functions were allowed in the Three.js versions, and both versions were rendered to confirm they draw the same scene.
 
 | | |
 |---|---|
-| **Tokens** | 10,944 → 3,593 in total, **3.0× fewer** (2.7×–3.8× per scene) |
+| **Tokens** | 14,151 → 4,057 in total, **3.5× fewer** (2.7×–6.9× per scene; scenes with parts, textures, models and labels save the most) |
 | **Speed** | generation time grows roughly linearly with output tokens, so a scene takes about a third of the time to write |
-| **One-time cost** | the [AI prompt](ai/SYSTEM_PROMPT.md) that teaches the language is ~1,400 tokens. It pays for itself after about two scenes and can be prompt-cached |
+| **One-time cost** | the [AI prompt](ai/SYSTEM_PROMPT.md) that teaches the language is ~1,500 tokens. It pays for itself after about two scenes and can be prompt-cached |
 | **Edits** | changing one object means one short line, not a block of JavaScript |
 
-Reproduce it with `npm run bench`, and see [bench/RESULTS.md](bench/RESULTS.md) for the full table. Counts use OpenAI's o200k tokenizer. Claude's tokenizer differs, but because both are BPE tokenizers the ratios come out similar. Even after subtracting the ~150 tokens of renderer setup that tinythree hides, the result is still 2.6× fewer.
+Reproduce it with `npm run bench`, and see [bench/RESULTS.md](bench/RESULTS.md) for the full table. Counts use OpenAI's o200k tokenizer. Claude's tokenizer differs, but because both are BPE tokenizers the ratios come out similar. Even after subtracting the ~150 tokens of renderer setup that tinythree hides, the result is still 3.1× fewer.
 
 ## Gallery
 
 Every scene below is a single `.t3` file of 7 to 57 lines. Click one to open it in the playground.
 
 <table>
+<tr>
+<td align="center" colspan="3"><a href="https://muskec06.github.io/tinythree/#town-square"><img src="docs/gallery/town-square.jpg" width="480"><br><b>Town square</b></a><br><sub>464 tokens · 6.9× fewer · library parts, procedural textures, an animated glTF model and a text label</sub></td>
+</tr>
 <tr>
 <td align="center"><a href="https://muskec06.github.io/tinythree/#eiffel-tower"><img src="docs/gallery/eiffel-tower.jpg" width="240"><br><b>Eiffel Tower</b></a><br><sub>1,117 tokens · 2.7× fewer · 1,400 beams</sub></td>
 <td align="center"><a href="https://muskec06.github.io/tinythree/#leaning-tower-pisa"><img src="docs/gallery/leaning-tower-pisa.jpg" width="240"><br><b>Leaning Tower of Pisa</b></a><br><sub>316 tokens · 3.1× fewer</sub></td>
@@ -156,6 +159,7 @@ anim cam orbit 20s
 | | |
 |---|---|
 | **Shapes** | `box` `sphere` `cyl` `cone` `torus` `plane` `capsule` `lathe` `extrude` `arrow` `truss` `group` `use` |
+| **Content** | `text "label"` · `model chair.glb play` · `mat brick map=brick rep=4,2` (image or built-in texture) · `use lib:tree` (13 real-size parts) |
 | **Copies** | `mirror=xz` · `array=n,dx,dy,dz` · `grid=nx,nz,dx,dz` · `radial=n,r` |
 | **Animation** | `spin` · `wave` · chained `to` tweens with `at=` and `ease=` · `anim cam orbit` |
 | **Escape hatch** | `js`, `tick` and `renderer` blocks take raw Three.js for anything else: GLTF models, shaders, particles, post-processing, environment maps, WebXR |
@@ -164,13 +168,13 @@ The full reference is in [spec/LANGUAGE.md](spec/LANGUAGE.md).
 
 ## Does it cover all of Three.js?
 
-Yes. The coverage is checked by a browser test suite: [**35/35 capability probes pass**](docs/CAPABILITIES.md).
+Yes. The coverage is checked by a browser test suite: [**39/39 capability probes pass**](docs/CAPABILITIES.md).
 
 | | features | probes |
 |---|---|---:|
-| ✅ **tinythree syntax** | shapes, lattices, materials, lights, shadows, fog, copies, groups, clones, animation, perspective and orthographic cameras, frame-exact video | 13 |
-| 🧩 **`js` / `tick` blocks** | extra geometries, physical, toon and shader materials, textures, spot and area lights, particles, lines, sprites, instancing, raycasting, glTF models, keyframe, morph and skinned animation, audio | 15 |
-| 🔧 **`renderer` block** | tone mapping, environment maps, post-processing (bloom, DOF, SSAO…), HTML labels, WebXR | 7 |
+| ✅ **tinythree syntax** | shapes, lattices, materials, image and procedural textures, text labels, glTF models with animations, a part library, lights, shadows, fog, copies, clones, animation, perspective and orthographic cameras, frame-exact video | 18 |
+| 🧩 **`js` / `tick` blocks** | extra geometries, physical, toon and shader materials, spot and area lights, particles, lines, sprites, instancing, raycasting, keyframe, morph and skinned animation, async assets, audio | 16 |
+| 🔧 **`renderer` block** | tone mapping, environment maps, post-processing (bloom, DOF, SSAO…), HTML labels, WebXR | 5 |
 
 The token savings come from the first row. The other two are plain Three.js inside the scene file: they cost the same tokens as Three.js, but you never have to leave tinythree. Known limits are listed in [docs/CAPABILITIES.md](docs/CAPABILITIES.md#known-limits).
 
@@ -201,7 +205,7 @@ flowchart LR
   G --> H[render.py<br/>seek t → frame → ffmpeg]
 ```
 
-- **One file:** [`src/tinythree.js`](src/tinythree.js), about 600 lines with zero dependencies, running in the browser and in Node.
+- **One file:** [`src/tinythree.js`](src/tinythree.js), about 800 lines with zero dependencies, running in the browser and in Node.
 - **Readable output:** the generated code is ordinary Three.js that you can keep editing.
 - **Errors for models:** for example `line 7: unknown command "spehre" (did you mean "sphere"?)`. One line, one fix.
 
@@ -210,9 +214,9 @@ flowchart LR
 ```
 src/tinythree.js      parser, compiler, runtime (mount) and HTML export
 bin/tinythree.js      CLI
-ai/SYSTEM_PROMPT.md   compact language description for LLMs (~1.4k tokens)
+ai/SYSTEM_PROMPT.md   compact language description for LLMs (~1.5k tokens)
 spec/LANGUAGE.md      full language reference
-examples/             10 example scenes
+examples/             11 example scenes (+ assets/windmill.glb)
 playground/           live editor (GitHub Pages)
 bench/                token benchmark, hand-written Three.js versions, chart, capability audit
 tools/render.py       frame-exact video and PNG renderer
@@ -221,17 +225,7 @@ test/                 node:test suite
 
 ## Roadmap
 
-These features work today through `js` blocks. Each will get a one-line syntax. The table shows how many tokens that saves, measured the same way as the benchmark.
-
-| planned syntax | example | tokens today → planned | prompt cost |
-|---|---|---:|---:|
-| **Text labels** (in videos too) | `text t "F = m·a" @0,1.5,0 s=.5` | 116 → 22 (**5.3×**) | +31 |
-| **glTF / GLB models** | `model chair chair.glb @1,0,2 ry=90` | 80 → 14 (**5.7×**) | +34 |
-| **Image textures** | `mat brick #fff map=brick.jpg rep=4,2` | 70 → 13 (**5.4×**) | +12 |
-| **Wall openings (CSG)** | `box wall 6,3,.3 wall cut=door` | 143 → 41 (**3.5×**) | +16 |
-| **Part library** | `use lib:tree a @-10,0,14` | 85 → 36 (**2.4×**) | +21 |
-
-Also planned:
+- **Wall openings (CSG):** `box wall 6,3,.3 wall cut=door`. Measured: 143 → 41 tokens (3.5× fewer) than doing it today in a `js` block with three-bvh-csg.
 - **Claude skill and MCP server** that write, compile and render a scene in one step.
 - **First-try success rate** across several models, measured with each provider's own token counter.
 

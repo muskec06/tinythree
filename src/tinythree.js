@@ -2,7 +2,7 @@
 // Zero dependencies. Runs in the browser and in Node (ESM).
 // https://github.com/muskec06/tinythree  ·  MIT License
 
-export const VERSION = '0.2.0';
+export const VERSION = '0.3.0';
 export const THREE_VERSION = '0.187.0';
 export const DEFAULT_THREE_URL = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/`;
 
@@ -35,10 +35,10 @@ function suggest(word, list) {
 
 const NUM = /^-?(\d+\.?\d*|\.\d+)$/;
 const IDENT = /^[A-Za-z_][\w-]*$/;
-const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow', 'truss'];
+const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow', 'truss', 'text', 'model'];
 const COMMANDS = ['scene', 'amb', 'hemi', 'sun', 'point', 'mat', 'group', 'use', 'anim', 'js', 'tick', 'renderer', ...PRIMS];
-const FLAGS = ['floor', 'noshadow', 'hidden'];
-const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'lean', 'n', 't', 'seg', 'pts', 'd', 'name'];
+const FLAGS = ['floor', 'noshadow', 'hidden', 'play', 'top'];
+const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'lean', 'n', 't', 'seg', 'pts', 'd', 'bg', 'name'];
 
 const isNum = (t) => NUM.test(t);
 const isList = (t) => t.split(',').every(isNum);
@@ -77,12 +77,42 @@ function lex(src) {
   const out = [];
   src.split(/\r?\n/).forEach((raw, i) => {
     const line = i + 1;
-    const noComment = raw.replace(/\s*\/\/.*$/, '');
+    const noComment = raw.replace(/(^|\s)\/\/.*$/, '');
     const indent = (noComment.match(/^[ \t]*/)[0] || '').replace(/\t/g, '  ').length;
     const text = noComment.trim();
-    out.push({ line, indent, text, raw, tokens: text ? text.split(/\s+/) : [] });
+    out.push({ line, indent, text, raw, tokens: text ? text.match(/"[^"]*"|\S+/g) : [] });
   });
   return out;
+}
+
+/* ------------------------------------------------------------------ part library */
+
+// Real-world sizes, 1 unit = 1 m, origin at the base center, front facing +z. Used with `use lib:NAME`.
+export const LIB = {
+  tree: ['', 'cyl .15,1.6 @0,.8,0 #6b4b2a\nsphere 1.2 @0,2.6,0 #3f7a3a s=1,1.2,1'],
+  pine: ['', 'cyl .12,.8 @0,.4,0 #6b4b2a\ncone 1,2.4 @0,1.9,0 #2f6b3a\ncone .75,1.8 @0,2.9,0 #2f6b3a'],
+  bush: ['', 'sphere .6 @0,.45,0 #4a8a3f s=1.3,.8,1'],
+  person: ['', 'cyl .09,.85 @.1,.43,0 #2b3a55 mirror=x\ncapsule .2,.45 @0,1.17,0 #c0392b\nsphere .13 @0,1.66,0 #e0b48c'],
+  car: ['mat libglass #bcd9ef r=.1 m=.5 op=.8', 'box 4,.8,1.8 @0,.7,0 #2e86de\nbox 2.2,.7,1.6 @-.2,1.45,0 libglass\ncyl .35,.25 @1.3,.35,.85 rx=90 #222 mirror=xz'],
+  bench: ['', 'box 1.6,.08,.45 @0,.45,0 #8b5a2b\nbox 1.6,.4,.06 @0,.75,-.2 #8b5a2b\nbox .06,.45,.4 @.7,.22,0 #333 mirror=x'],
+  streetlamp: ['mat liblight #fff4c8 glow=2', 'cyl .05,.08,3.5 @0,1.75,0 #2d3436\nsphere .18 @0,3.6,0 liblight'],
+  door: ['', 'box 1.1,2.2,.06 @0,1.1,0 #f2f2f2\nbox .9,2.05,.08 @0,1.03,0 #7b4a26\nsphere .04 @.33,1,.06 #d4af37'],
+  window: ['mat libglass #bcd9ef r=.1 m=.5 op=.8', 'box 1.2,1.4,.08 @0,0,0 #f5f5f5\nbox 1,1.2,.1 libglass\nbox 1,.05,.11 #f5f5f5'],
+  column: ['', 'box .7,.2,.7 @0,.1,0 #e8e1d3\ncyl .25,.28,3 @0,1.7,0 #efe9dc\nbox .7,.2,.7 @0,3.3,0 #e8e1d3'],
+  fence: ['', 'box .08,1,.08 @0,.5,0 #8b5a2b array=6,.5,0,0\nbox 2.6,.06,.04 @1.25,.75,0 #8b5a2b\nbox 2.6,.06,.04 @1.25,.35,0 #8b5a2b'],
+  stairs: ['', 'box 1.2,.17,.28 @0,.085,0 #bdb6aa array=10,0,.17,.28'],
+  house: ['', 'box 6,3,5 @0,1.5,0 #efe6d8\nextrude pts=-3.4,0;3.4,0;0,2 d=5.4 @0,3,-2.7 #a5452c\nbox 1,2,.1 @0,1,2.5 #7b4a26\nbox 1,1,.1 @-1.8,1.7,2.5 #9ec9e8 mirror=x'],
+};
+export const TEXTURES = ['checker', 'grid', 'brick', 'tiles', 'wood', 'grass', 'noise'];
+
+function ensureLib(ast, name, line) {
+  if (ast.names.has('lib:' + name)) return;
+  if (!LIB[name]) throw new TinyThreeError(`no library part "${name}"`, line, suggest(name, Object.keys(LIB)));
+  const [mats, body] = LIB[name];
+  const part = parse(`${mats}\ngroup name=lib:${name} hidden\n${body.split('\n').map((l) => '  ' + l).join('\n')}`);
+  for (const [k, m] of Object.entries(part.mats)) if (!ast.mats[k]) ast.mats[k] = m;
+  ast.nodes.unshift(part.nodes[0]);
+  ast.names.add('lib:' + name);
 }
 
 /* ------------------------------------------------------------------ parsing */
@@ -191,34 +221,50 @@ function parseLight(type, args, line) {
 function parseMat(ast, args, line) {
   const [name, ...rest] = args;
   if (!name || !IDENT.test(name)) throw new TinyThreeError('mat needs a name', line, 'mat wood #8b5a2b r=.7');
-  const m = { name, line, color: 0xcccccc, r: null, m: null, glow: 0, glowColor: null, op: 1, wire: false, flat: false, double: false };
+  const m = { name, line, color: 0xcccccc, colorSet: false, r: null, m: null, glow: 0, glowColor: null, op: 1, wire: false, flat: false, double: false, map: null, rep: null };
   for (const t of rest) {
     const p = kv(t);
-    if (t.startsWith('#')) m.color = color(t, line);
+    if (t.startsWith('#')) { m.color = color(t, line); m.colorSet = true; }
     else if (['wire', 'flat', 'double'].includes(t)) m[t] = true;
     else if (p) {
       const [k, v] = p;
       if (k === 'r') m.r = num(v, line); else if (k === 'm') m.m = num(v, line);
       else if (k === 'glow') m.glow = num(v, line); else if (k === 'glowc') m.glowColor = color(v, line);
       else if (k === 'op') m.op = num(v, line);
-      else throw new TinyThreeError(`unknown material option "${k}"`, line, suggest(k, ['r', 'm', 'glow', 'glowc', 'op']));
+      else if (k === 'map') {
+        if (!v.includes('.') && !TEXTURES.includes(v)) throw new TinyThreeError(`unknown texture "${v}"`, line, suggest(v, TEXTURES));
+        m.map = v;
+      } else if (k === 'rep') m.rep = list(v, line, 2, 'u,v');
+      else throw new TinyThreeError(`unknown material option "${k}"`, line, suggest(k, ['r', 'm', 'glow', 'glowc', 'op', 'map', 'rep']));
     } else throw new TinyThreeError(`unexpected "${t}" in mat`, line, suggest(t, ['wire', 'flat', 'double']));
   }
+  if (m.map && !m.colorSet) m.color = 0xffffff; // a texture shows its own colors unless tinted
   ast.mats[name] = m;
 }
 
 function parseNode(ast, type, args, line) {
   const n = { type, line, name: null, dims: null, mat: null, color: null, pos: [0, 0, 0], rot: [0, 0, 0], scale: [1, 1, 1],
-    flags: new Set(), copies: null, mirrors: null, lean: [0, 0], bays: null, thick: null, arc: null, seg: null, pts: null, depth: null, src: null, children: type === 'group' ? [] : null };
+    flags: new Set(), label: null, bg: null, copies: null, mirrors: null, lean: [0, 0], bays: null, thick: null, arc: null, seg: null, pts: null, depth: null, src: null, children: type === 'group' ? [] : null };
   let rest = args;
   if (type === 'use') {
     if (!rest[0]) throw new TinyThreeError('use needs an object name', line);
     n.src = rest[0]; rest = rest.slice(1);
+    if (n.src.startsWith('lib:')) ensureLib(ast, n.src.slice(4), line);
     if (!ast.names.has(n.src))
       throw new TinyThreeError(`use: no object named "${n.src}" defined above`, line, suggest(n.src, [...ast.names]));
   }
   if (rest[0] && IDENT.test(rest[0]) && !ast.mats[rest[0]] && !FLAGS.includes(rest[0]) && !rest[0].includes('=')) {
     n.name = rest[0]; rest = rest.slice(1);
+  }
+  if (type === 'text') {
+    const i = rest.findIndex((t) => t.startsWith('"'));
+    if (i < 0) throw new TinyThreeError('text needs a quoted label', line, 'text title "Hello" @0,2,0');
+    n.label = rest[i].slice(1, -1); rest = rest.filter((_, j) => j !== i);
+  }
+  if (type === 'model') {
+    const i = rest.findIndex((t) => !t.includes('=') && !t.startsWith('@') && !t.startsWith('#') && /[./]/.test(t) && !isList(t));
+    if (i < 0) throw new TinyThreeError('model needs a file or URL', line, 'model chair chair.glb @0,0,0');
+    n.src = rest[i]; rest = rest.filter((_, j) => j !== i);
   }
   let mirror = null, array = null, grid = null, radial = null;
   for (const t of rest) {
@@ -248,6 +294,7 @@ function parseNode(ast, type, args, line) {
         case 'pts': n.pts = pairs(v, line); break;
         case 'd': n.depth = num(v, line); break;
         case 'name': n.name = v; break;
+        case 'bg': n.bg = color(v, line); break;
         default: throw new TinyThreeError(`unknown option "${k}"`, line, suggest(k, NODE_KEYS));
       }
     } else if (IDENT.test(t)) throw new TinyThreeError(`unknown material or flag "${t}"`, line,
@@ -348,7 +395,9 @@ function geometry(n) {
   }
 }
 
-export function compile(src, { format = 'esm' } = {}) {
+export function compile(src, { format = 'esm', base = '' } = {}) {
+  // base: prefix for relative model/texture paths (e.g. the folder the .t3 file was loaded from)
+  const url = (u) => (base && !/^([a-z]+:|\/)/i.test(u) ? base + u : u);
   const ast = typeof src === 'string' ? parse(src) : src;
   const S = ast.scene;
   const out = [];
@@ -386,10 +435,36 @@ export function compile(src, { format = 'esm' } = {}) {
     if (m.double) o.push('side: THREE.DoubleSide');
     return `new THREE.MeshStandardMaterial({ ${o.join(', ')} })`;
   };
-  for (const m of Object.values(ast.mats)) w(`  M.${m.name} = ${matCode(m)};`);
+  const usesMap = Object.values(ast.mats).some((m) => m.map);
+  if (usesMap) {
+    // procedural textures are drawn on a canvas with a fixed seed, so videos are identical every run
+    w(`  function proc(kind) {`);
+    w(`    if (typeof document === 'undefined') return null;`);
+    w(`    const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');`);
+    w(`    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;`);
+    w(`    const fill = (col, x, y, w, h) => { g.fillStyle = col; g.fillRect(x, y, w, h); };`);
+    w(`    if (kind === 'checker') for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) fill((i + j) % 2 ? '#222' : '#eee', i * 32, j * 32, 32, 32);`);
+    w(`    else if (kind === 'grid') { fill('#f4f4f4', 0, 0, 256, 256); for (let i = 0; i <= 256; i += 32) { fill('#9aa', i, 0, 2, 256); fill('#9aa', 0, i, 256, 2); } }`);
+    w(`    else if (kind === 'brick') { fill('#c9c3b8', 0, 0, 256, 256); for (let r = 0; r < 8; r++) for (let k = -1; k < 4; k++) fill(\`hsl(\${10 + rnd() * 10},55%,\${36 + rnd() * 10}%)\`, k * 64 + (r % 2) * 32 + 2, r * 32 + 2, 60, 28); }`);
+    w(`    else if (kind === 'tiles') { fill('#a49a88', 0, 0, 256, 256); for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) fill(\`hsl(38,25%,\${70 + rnd() * 10}%)\`, i * 64 + 2, j * 64 + 2, 60, 60); }`);
+    w(`    else if (kind === 'wood') { fill('#9a6a3e', 0, 0, 256, 256); for (let y = 0; y < 256; y += 4) fill(\`rgba(60,30,10,\${rnd() * .35})\`, 0, y, 256, 2 + rnd() * 3); }`);
+    w(`    else { const base = kind === 'grass' ? [74, 130, 58] : [128, 128, 128]; const d = g.createImageData(256, 256);`);
+    w(`      for (let i = 0; i < d.data.length; i += 4) { const k = .8 + rnd() * .4; d.data[i] = base[0] * k; d.data[i + 1] = base[1] * k; d.data[i + 2] = base[2] * k; d.data[i + 3] = 255; } g.putImageData(d, 0, 0); }`);
+    w(`    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;`);
+    w(`  }`);
+    w(`  function tex(mat, src, ru, rv) {`);
+    w(`    const set = (t) => { if (!t) return; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(ru, rv); t.colorSpace = THREE.SRGBColorSpace; mat.map = t; mat.needsUpdate = true; };`);
+    w(`    if (!/[./]/.test(src)) return set(proc(src));`);
+    w(`    wait(new THREE.TextureLoader().loadAsync(src).then(set).catch((e) => console.warn('tinythree: could not load ' + src, e)));`);
+    w(`  }`);
+  }
+  for (const m of Object.values(ast.mats)) {
+    w(`  M[${JSON.stringify(m.name)}] = ${matCode(m)};`);
+    if (m.map) w(`  tex(M[${JSON.stringify(m.name)}], ${JSON.stringify(m.map.includes('.') ? url(m.map) : m.map)}, ${f(m.rep?.[0] ?? 1)}, ${f(m.rep?.[1] ?? 1)});`);
+  }
   const inlineMats = new Map();
   const matFor = (n) => {
-    if (n.mat) return `M.${n.mat}`;
+    if (n.mat) return `M[${JSON.stringify(n.mat)}]`;
     if (n.color !== null) {
       if (!inlineMats.has(n.color)) {
         const id = `M._c${n.color.toString(16)}`;
@@ -426,6 +501,33 @@ export function compile(src, { format = 'esm' } = {}) {
       w(`  ${parent}.add(${n});`);
     }
   };
+  const uses = (type, nodes = ast.nodes) => nodes.some((n) => n.type === type || (n.children && uses(type, n.children)));
+  if (uses('text')) {
+    // labels are canvas sprites: they face the camera and show up in rendered videos
+    w(`  function label(text, color, bg, top) {`);
+    w(`    const s = new THREE.Sprite(new THREE.SpriteMaterial({ depthTest: !top, transparent: true }));`);
+    w(`    if (typeof document === 'undefined') return s;`);
+    w(`    const c = document.createElement('canvas'), g = c.getContext('2d'), font = 'bold 96px system-ui, sans-serif';`);
+    w(`    g.font = font; const w = Math.ceil(g.measureText(text).width) + 48; c.width = w; c.height = 128;`);
+    w(`    if (bg !== null) { g.fillStyle = '#' + bg.toString(16).padStart(6, '0'); g.beginPath(); g.roundRect(0, 0, w, 128, 28); g.fill(); }`);
+    w(`    g.font = font; g.textBaseline = 'middle'; g.fillStyle = '#' + color.toString(16).padStart(6, '0'); g.fillText(text, 24, 68);`);
+    w(`    s.material.map = new THREE.CanvasTexture(c); s.material.map.colorSpace = THREE.SRGBColorSpace;`);
+    w(`    s.geometry = s.geometry.clone().scale(w / 128, 1, 1); if (top) s.renderOrder = 999;`);
+    w(`    return s;`);
+    w(`  }`);
+  }
+  if (uses('model')) {
+    w(`  const _mixers = [];`);
+    w(`  function model(url, play, cast) {`);
+    w(`    const holder = new THREE.Group();`);
+    w(`    wait(import('three/addons/loaders/GLTFLoader.js').then(({ GLTFLoader }) => new GLTFLoader().loadAsync(url)).then((g) => {`);
+    w(`      g.scene.traverse((o) => { if (o.isMesh) o.castShadow = o.receiveShadow = cast; });`);
+    w(`      holder.add(g.scene);`);
+    w(`      if (play && g.animations.length) { const mx = new THREE.AnimationMixer(g.scene); g.animations.forEach((c) => mx.clipAction(c).play()); _mixers.push(mx); }`);
+    w(`    }).catch((e) => console.warn('tinythree: could not load ' + url, e)));`);
+    w(`    return holder;`);
+    w(`  }`);
+  }
   const usesTruss = (nodes) => nodes.some((n) => n.type === 'truss' || (n.children && usesTruss(n.children)));
   if (usesTruss(ast.nodes)) {
     // lattice tower segment: 4 corner posts, a ring per bay and X braces on every face,
@@ -472,6 +574,8 @@ export function compile(src, { format = 'esm' } = {}) {
       if (n.type === 'group') return `new THREE.Group()`;
       if (n.type === 'use') return `Object.assign(O[${JSON.stringify(n.src)}].clone(), { visible: true })`;
       if (n.type === 'truss') return trussCall(n, [1, 1, 1]);
+      if (n.type === 'text') return `label(${JSON.stringify(n.label)}, ${hex(n.color ?? 0xffffff)}, ${n.bg === null ? 'null' : hex(n.bg)}, ${n.flags.has('top')})`;
+      if (n.type === 'model') return `model(${JSON.stringify(url(n.src))}, ${n.flags.has('play')}, ${S.shadows && !n.flags.has('noshadow')})`;
       if (n.type === 'arrow') {
         const [dx = 0, dy = 1, dz = 0, len = 1] = n.dims || [];
         // wrapped in a group so rot= on the node does not reset the arrow's own direction
@@ -560,6 +664,7 @@ export function compile(src, { format = 'esm' } = {}) {
   }
 
   w(`  function update(t, animateCamera = true) {`);
+  if (uses('model')) w(`    for (const mx of _mixers) mx.setTime(t);`);
   for (const u of updates) w(`    ${u}`);
   if (camAnims.length) { w(`    if (animateCamera) {`); camAnims.forEach((u) => w(`      ${u}`)); w(`    }`); }
   for (const code of ast.tick) { w(`    // --- tick block`); code.split('\n').forEach((l) => w('    ' + l)); }
@@ -639,9 +744,9 @@ export function mount(THREE, built, el, { OrbitControls = null, autoplay = true,
 
 /* ------------------------------------------------------------------ standalone html */
 
-export function toHTML(src, { threeUrl = DEFAULT_THREE_URL, title = 'tinythree scene' } = {}) {
+export function toHTML(src, { threeUrl = DEFAULT_THREE_URL, title = 'tinythree scene', base = '' } = {}) {
   const ast = parse(src);
-  const code = compile(ast, { format: 'fn' });
+  const code = compile(ast, { format: 'fn', base });
   const bg = ast.scene.transparent ? 'transparent' : '#' + ast.scene.bg.toString(16).padStart(6, '0');
   return `<!doctype html>
 <html lang="en">

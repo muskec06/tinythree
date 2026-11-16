@@ -1,4 +1,4 @@
-# tinythree language reference — v0.2
+# tinythree language reference — v0.3
 
 tinythree (`.t3`) describes a Three.js scene in as few tokens as possible while staying
 readable to people. The compiler (`src/tinythree.js`) turns it into plain Three.js code.
@@ -56,6 +56,9 @@ mat name #color [r=roughness] [m=metalness] [glow=intensity] [glowc=#color] [op=
 ```
 
 Materials are `MeshStandardMaterial`s and must be defined before they are used.
+`map=` adds a texture: an image path or URL (`map=brick.jpg`), or a built-in procedural texture:
+`checker`, `grid`, `brick`, `tiles`, `wood`, `grass`, `noise`. Built-ins are drawn with a fixed seed, so videos match frame for frame.
+`rep=u,v` repeats the texture. A textured material is white (shows the texture's own colors) unless you give it a color.
 An object can also take an inline color (`#f80`) instead of a material name.
 
 ## 5. Objects
@@ -77,8 +80,10 @@ type [name] [size] [material | #color] [@position] [options...] [flags...]
 | `extrude` | `pts=x,y;x,y;...` + `d=depth` | ExtrudeGeometry |
 | `arrow` | `dx,dy,dz,length` | ArrowHelper |
 | `truss` | `w0,w1,h` | lattice tower segment as one InstancedMesh (see below) |
+| `text` | `"label"` | camera-facing label (canvas sprite), see below |
+| `model` | `file.glb` or URL | glTF/GLB model, see below |
 | `group` | — | Group (children are indented) |
-| `use src [name]` | — | `.clone()` of an earlier named object |
+| `use src [name]` | — | `.clone()` of an earlier named object, or of a library part (`use lib:tree`) |
 
 **Name.** The first plain word after the type is the name, unless it is a material or a flag.
 Names are optional, unique, and only needed for `anim` and `use`.
@@ -93,6 +98,19 @@ a horizontal ring per bay and X braces on every face, tapering from width `w0` a
 Its origin is the **base center** (not the middle). `lean` shifts the top center, so stacked segments with decreasing
 lean make a curved leg. By default bays are roughly square-ish (`h / (0.6 · avg width)`) and beams are 2.2% of the width.
 With `mirror=`, the lean is mirrored too, so `truss leg ... @5,0,5 lean=-1,-1 mirror=xz` gives four legs leaning inward.
+
+**Text.** `text [name] "label" [#color] [bg=#color] [@pos] [s=height] [top]` draws the label on a canvas and shows it
+as a sprite that always faces the camera. Height is 1 unit before `s=`. `top` draws it above everything (no depth test).
+Because it is part of the WebGL picture, labels appear in rendered videos.
+
+**Models.** `model [name] path.glb [@pos] [rot] [s] [play]` loads a glTF/GLB file with `GLTFLoader`. The name refers to
+a group that holds the model, so it can be positioned and animated like any object. `play` runs the file's own animations,
+driven by time, so they render frame-exact. Video rendering waits for models to load. Relative paths are resolved
+against the `.t3` file (the playground and `tools/render.py` handle this).
+
+**Library parts.** `use lib:PART [name] [@pos] [rot] [s] [copies]` clones a ready-made part. Sizes are real-world
+(1 unit = 1 m), the origin is at the base center and the front faces +z:
+`tree`, `pine`, `bush`, `person`, `car`, `bench`, `streetlamp`, `door`, `window` (centered), `column`, `fence`, `stairs`, `house`.
 
 **Copies.** These expand one line into many. The object's name then refers to a group that holds all copies.
 

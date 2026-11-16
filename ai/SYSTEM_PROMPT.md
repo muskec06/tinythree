@@ -13,7 +13,8 @@ Tokens: `@x,y,z` position · `#rgb`/`#rrggbb` color · `key=value` option · bar
 Lights may be indented in a group.
 
 ## Materials (define before use)
-`mat name #color [r=rough] [m=metal] [glow=intensity] [glowc=#c] [op=opacity] [wire] [flat] [double]`
+`mat name #color [r=rough] [m=metal] [glow=intensity] [glowc=#c] [op=opacity] [wire] [flat] [double] [map=texture] [rep=u,v]`
+`map=` is an image file/URL or a built-in texture: checker grid brick tiles wood grass noise (white color unless given).
 
 ## Objects: `type [name] [size] [material|#color] [@pos] [options] [flags]`
 | type | size (defaults) |
@@ -29,13 +30,16 @@ Lights may be indented in a group.
 | `extrude` | `pts=x,y;x,y;...` `d=depth` |
 | `arrow` | dx,dy,dz,length + `#color` |
 | `truss` | w0,w1,h — lattice tower segment (posts, rings, X braces); origin at its base; `lean=dx,dz` shifts the top; `n=` bays, `t=` beam size |
+| `text` | `"label"` + `#color` `bg=#color` `s=height` `top` — camera-facing label |
+| `model` | file.glb or URL — glTF; `play` runs its animations |
 | `group` | children indented below |
-| `use src [name]` | clone of an object/group defined above |
+| `use src [name]` | clone of an object/group defined above; `use lib:PART` for ready-made parts |
 
 Options: `rot=x,y,z` or `rx= ry= rz=` · `s=k` or `s=x,y,z` · `seg=n`
 Copies (one name = the whole set): `mirror=x|z|xz` (mirror position across axes) · `array=n,dx,dy,dz` · `grid=nx,nz,dx,dz` · `radial=n,r` (circle of radius r around the position, each copy turned so its local +x points outward)
 Flags: `floor` · `noshadow` · `hidden` (template for `use`; clones become visible)
 Name is optional; it must be unique and is needed only for `anim`/`use`.
+Parts (1 unit = 1 m, base at origin, front +z): tree pine bush person car bench streetlamp door window column fence stairs house
 
 ## Animation
 `anim target prop kind ...` — target: object, group, material name, or `cam`.

@@ -6,7 +6,7 @@ Levels:  native  = tinythree syntax · js = needs the js/tick escape hatch · bl
 
     python bench/capabilities.py            # needs playwright + node; serves three from node_modules
 """
-import functools, http.server, json, os, subprocess, sys, tempfile, threading
+import base64, functools, http.server, json, os, shutil, subprocess, sys, tempfile, threading
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 THREE_AGX = 6  # THREE.AgXToneMapping
@@ -51,6 +51,17 @@ probe('Camera', 'perspective camera, position, target, fov, orbit controls', 'na
       "tinythree.camera.fov===35&&!!tinythree.controls")
 probe('Video', 'frame-exact seek(t)', 'native', 'box a\nanim a rot.y spin 4s',
       "(()=>{tinythree.pause();tinythree.seek(1);const r=tinythree.scene.children.find(o=>o.isMesh).rotation.y;return Math.abs(r-Math.PI/2)<1e-6})()")
+
+probe('Text', 'text labels (canvas sprites, also in videos)', 'native', 'text t "F = m·a" @0,1.5,0 #fff bg=#123 s=.5 top',
+      "(s=>s.isSprite&&!!s.material.map&&s.renderOrder===999)(tinythree.scene.children.find(o=>o.isSprite))")
+probe('Loaders', 'glTF / GLB models with their animations (frame-exact)', 'native', 'model mill assets/windmill.glb @0,0,0 play',
+      "(()=>{tinythree.pause();tinythree.seek(1);const b=tinythree.scene.getObjectByName('blades');return tinythree.ready===true&&!!b&&Math.abs(Math.abs(b.quaternion.z)-Math.SQRT1_2)<1e-3})()")
+probe('Texture', 'image and procedural textures with repeat (checker, grid, brick, tiles, wood, grass, noise)', 'native',
+      'mat a map=brick rep=3,2\nmat b map=assets/../assets/tex.png\nbox x a\nbox y b @2,0,0',
+      "(()=>{const m=tinythree.scene.children.filter(o=>o.isMesh).map(o=>o.material);return tinythree.ready===true&&!!m[0].map&&m[0].map.repeat.x===3&&!!m[1].map})()")
+probe('Scene graph', 'part library: 13 real-size parts (trees, people, cars, houses, doors, windows, stairs…)', 'native',
+      'use lib:house h\nuse lib:tree t @5,0,0\nuse lib:car c @-5,0,0',
+      "tinythree.scene.children.filter(o=>o.isGroup&&o.visible).length===3")
 
 # ------------------------------------------------------------------ escape hatch (js / tick)
 probe('Geometry', 'torus knot, polyhedra, ring, circle, tube along a curve, shape, edges', 'js', '''
@@ -219,6 +230,10 @@ def main():
     from playwright.sync_api import sync_playwright
     work = tempfile.mkdtemp(prefix='tt-cap-')
     os.symlink(os.path.join(ROOT, 'node_modules', 'three'), os.path.join(work, 'three'))
+    os.makedirs(os.path.join(work, 'assets'))
+    shutil.copy(os.path.join(ROOT, 'examples', 'assets', 'windmill.glb'), os.path.join(work, 'assets'))
+    with open(os.path.join(work, 'assets', 'tex.png'), 'wb') as fh:  # 2x2 test image
+        fh.write(base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAEklEQVR4nGP4z8DwnwEIGGAMAEnKBf+P3c0OAAAAAElFTkSuQmCC'))
     for i, (_, _, _, src, _) in enumerate(P):
         with open(os.path.join(work, f'p{i}.t3'), 'w') as fh:
             fh.write(src + '\n')

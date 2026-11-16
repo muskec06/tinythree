@@ -1,5 +1,5 @@
 {
-  "prompt": 1399,
+  "prompt": 1532,
   "boiler": 156,
   "rows": [
     {
@@ -66,6 +66,13 @@
       "ratioNoBoiler": 3.171875
     },
     {
+      "name": "town-square",
+      "js": 3207,
+      "t3": 464,
+      "ratio": 6.911637931034483,
+      "ratioNoBoiler": 6.575431034482759
+    },
+    {
       "name": "vectors",
       "js": 466,
       "t3": 122,
@@ -75,9 +82,9 @@
   ],
   "total": {
     "name": "total",
-    "js": 10944,
-    "t3": 3593,
-    "ratio": 3.0459226273309215,
-    "ratioNoBoiler": 2.611745059838575
+    "js": 14151,
+    "t3": 4057,
+    "ratio": 3.4880453537096376,
+    "ratioNoBoiler": 3.0650727138279517
   }
 }

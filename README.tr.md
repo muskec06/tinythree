@@ -3,7 +3,7 @@
 # tinythree
 
 **Three.js'e derlenen küçük bir 3D sahne dili.**<br>
-Yapay zekâ modelleri 3D sahneleri **yaklaşık 3 kat daha az token** ile, daha hızlı ve daha ucuza yazsın diye tasarlandı.
+Yapay zekâ modelleri 3D sahneleri **3–7 kat daha az token** ile, daha hızlı ve daha ucuza yazsın diye tasarlandı.
 
 [**Playground**](https://muskec06.github.io/tinythree/) · [Galeri](README.md#gallery) · [Dil referansı](spec/LANGUAGE.md) · [AI istemi](ai/SYSTEM_PROMPT.md) · [English](README.md)
 
@@ -21,21 +21,21 @@ tinythree modele yalnızca sahneyi anlatan kısa bir yazım biçimi verir: ne ne
 
 <img src="docs/benchmark.png" width="760" alt="10 sahnede token karşılaştırması">
 
-10 sahne hem tinythree ile hem de elle, kısa ve deyimsel Three.js ile yazıldı. Sahnelerin beşi ünlü yapılar: 1.400 kafes kirişli detaylı Eyfel Kulesi, Pisa Kulesi, Giza Piramitleri, Stonehenge ve London Eye. İki sürüm de render edilerek aynı sahneyi çizdikleri doğrulandı.
+11 sahne hem tinythree ile hem de elle, kısa ve deyimsel Three.js ile yazıldı. Sahnelerin beşi ünlü yapılar: 1.400 kafes kirişli detaylı Eyfel Kulesi, Pisa Kulesi, Giza Piramitleri, Stonehenge ve London Eye. İki sürüm de render edilerek aynı sahneyi çizdikleri doğrulandı.
 
-- **Token:** Toplam 10.944'ten 3.593'e, yani **3,0 kat daha az** (sahneye göre 2,7× ile 3,8× arası).
+- **Token:** Toplam 14.151'den 4.057'ye, yani **3,5 kat daha az** (sahneye göre 2,7× ile 6,9× arası; hazır parça, doku, model ve yazı kullanan sahnelerde kazanç en yüksek).
 - **Hız:** Üretim süresi çıktı tokenıyla neredeyse doğru orantılı. Bir sahne yaklaşık üçte bir sürede yazılır.
-- **Tek seferlik maliyet:** Dili öğreten istem yaklaşık 1.400 token tutar ve 2 sahneden sonra kendini çıkarır.
+- **Tek seferlik maliyet:** Dili öğreten istem yaklaşık 1.500 token tutar ve 2 sahneden sonra kendini çıkarır.
 
 Ölçümü yeniden almak için `npm run bench` yeterli. Ayrıntılar [bench/RESULTS.md](bench/RESULTS.md) dosyasında.
 
 ## Three.js'in tamamını kapsıyor mu?
 
-Evet. Tarayıcıda çalışan bir test paketiyle kontrol edildi: [**35 yetenek testinin 35'i geçiyor**](docs/CAPABILITIES.md).
+Evet. Tarayıcıda çalışan bir test paketiyle kontrol edildi: [**39 yetenek testinin 39'u geçiyor**](docs/CAPABILITIES.md).
 
-- **tinythree sözdizimi (13 test):** Şekiller, kafes kuleler, malzemeler, ışıklar, gölgeler, kopyalar, animasyon, perspektif ve ortografik kamera, video.
-- **`js` / `tick` blokları (15 test):** Ek geometriler, cam ve shader malzemeleri, dokular, parçacıklar, glTF modelleri, iskelet animasyonu, fare ile seçim.
-- **`renderer` bloğu (7 test):** Ton eşleme, ortam haritaları, post-processing (bloom vb.), HTML etiketleri, WebXR.
+- **tinythree sözdizimi (18 test):** Şekiller, kafes kuleler, malzemeler, görsel ve hazır dokular, yazı etiketleri, animasyonlu glTF modeller, hazır parça kütüphanesi, ışıklar, gölgeler, kopyalar, animasyon, perspektif ve ortografik kamera, video.
+- **`js` / `tick` blokları (16 test):** Ek geometriler, cam ve shader malzemeleri, parçacıklar, iskelet animasyonu, fare ile seçim, ses.
+- **`renderer` bloğu (5 test):** Ton eşleme, ortam haritaları, post-processing (bloom vb.), HTML etiketleri, WebXR.
 
 Token tasarrufu ilk gruptan geliyor. Diğer ikisi sahne dosyasının içinde yazılan düz Three.js'tir: Three.js kadar token tutar, ama tinythree'den çıkmadan yapılabilir.
 

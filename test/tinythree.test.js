@@ -158,3 +158,45 @@ test('wait() makes ready() wait for async work', async () => {
   await b.ready();
   assert.equal(b.objects.late, 1);
 });
+
+test('text labels are sprites; quoted labels keep their spaces', () => {
+  const b = build('text title "Hello big world" #ff0000 @0,2,0 s=.5 top');
+  assert.ok(b.objects.title.isSprite);
+  assert.equal(b.objects.title.position.y, 2);
+  assert.match(compile('text "a  b"'), /label\("a  b"/);
+  assert.throws(() => compile('text t hello'), /quoted label/);
+});
+
+test('models load through GLTFLoader, keep URLs intact, and never break ready()', async () => {
+  const code = compile('model chair https://example.com/chair.glb @1,0,2 ry=90 play');
+  assert.match(code, /GLTFLoader/);
+  assert.match(code, /"https:\/\/example\.com\/chair\.glb"/);
+  assert.match(code, /mx\.setTime\(t\)/);
+  const b = build('model chair missing.glb @1,0,2');
+  assert.ok(b.objects.chair.isGroup);
+  await b.ready(); // a failed load is reported, not thrown
+});
+
+test('materials take image or procedural textures', () => {
+  const b = build('mat floor map=tiles rep=8,8\nmat wall #ccc map=brick.jpg\nbox a floor\nbox c wall');
+  assert.equal(b.materials.floor.color.getHex(), 0xffffff); // untinted
+  assert.equal(b.materials.wall.color.getHex(), 0xcccccc);
+  assert.match(compile('mat w map=brick.jpg rep=4,2\nbox a w'), /TextureLoader/);
+  assert.throws(() => compile('mat w map=brik'), /unknown texture "brik".*"brick"/);
+});
+
+test('library parts are cloned like templates', () => {
+  const b = build('use lib:tree t1 @3,0,0\nuse lib:tree t2 @-3,0,0\nuse lib:car c');
+  assert.ok(b.objects['lib:tree'].visible === false && b.objects.t1.visible && b.objects.t2.visible);
+  assert.equal(b.objects.t1.position.x, 3);
+  assert.equal(b.objects.t1.children.length, 2);
+  assert.ok(b.materials.libglass.transparent);
+  assert.throws(() => compile('use lib:tre'), /no library part "tre".*"tree"/);
+});
+
+test('every library part compiles', async () => {
+  const { LIB } = await import('../src/tinythree.js');
+  const b = build(Object.keys(LIB).map((k, i) => `use lib:${k} p${i} @${i * 3},0,0`).join('\n'));
+  assert.equal(Object.keys(LIB).length, 13);
+  for (let i = 0; i < 13; i++) assert.ok(b.objects['p' + i].children.length > 0);
+});

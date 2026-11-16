@@ -11,12 +11,13 @@
 | solar-farm | 914 | 253 | **3.6×** | 3.0× |
 | stonehenge | 1120 | 375 | **3.0×** | 2.6× |
 | table-lamp | 968 | 256 | **3.8×** | 3.2× |
+| town-square | 3207 | 464 | **6.9×** | 6.6× |
 | vectors | 466 | 122 | **3.8×** | 2.5× |
-| **total** | 10944 | 3593 | **3.0×** | 2.6× |
+| **total** | 14151 | 4057 | **3.5×** | 3.1× |
 
 \* minus 156 tokens of renderer/controls/resize setup that every Three.js page needs and tinythree hides.
 
-AI prompt that teaches the language (`ai/SYSTEM_PROMPT.md`): **1399 tokens**, sent once per conversation (and cacheable).
-Average saving per scene: 735 tokens → the prompt pays for itself after ~2 scenes or edits.
+AI prompt that teaches the language (`ai/SYSTEM_PROMPT.md`): **1532 tokens**, sent once per conversation (and cacheable).
+Average saving per scene: 918 tokens → the prompt pays for itself after ~2 scenes or edits.
 
 Tokenizer: OpenAI o200k_base via js-tiktoken (Claude's tokenizer differs; ratios are similar because both are BPE).

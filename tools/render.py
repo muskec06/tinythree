@@ -89,6 +89,11 @@ def main():
         if a.three_dir:
             os.symlink(os.path.abspath(a.three_dir), os.path.join(work, 'three'))
             three_url = '/three/'
+        # files next to the scene (models, textures) are served alongside it
+        scene_dir = os.path.dirname(os.path.abspath(a.scene))
+        for entry in os.listdir(scene_dir):
+            if entry not in ('index.html', 'three') and not os.path.exists(os.path.join(work, entry)):
+                os.symlink(os.path.join(scene_dir, entry), os.path.join(work, entry))
         with open(os.path.join(work, 'index.html'), 'w', encoding='utf-8') as fh:
             fh.write(build_html(a.scene, three_url))
         httpd = serve(work)
