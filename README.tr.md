@@ -61,6 +61,11 @@ node bin/tinythree.js tokens examples/eiffel-tower.t3 bench/threejs/eiffel-tower
 python tools/render.py examples/building.t3 -o building.mp4      # kare kare video
 ```
 
+## Blender
+
+Aynı `.t3` dosyası Blender'da da sahne kurar: [tinythree-blender](https://github.com/muskec06/tinythree-blender) Blender'a özel
+komutlar ekler (gökyüzü, arazi, dağıtma, modifier, keyframe, Cycles ayarları). Three.js bu satırları atlar, yani tek dosya ikisinde de çalışır.
+
 ## Eğitim videoları
 
 Sahneler zamana bağlı saf bir `update(t)` fonksiyonu ürettiği için her kare tam zamanında render edilir. Sonuç bilgisayarın hızına bağlı değildir. `bg=none` ile şeffaf arka planlı ProRes 4444 (MOV) veya WebM çıkarıp kurgu programında başka görüntülerin üzerine bindirebilirsin.

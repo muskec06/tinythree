@@ -2,7 +2,7 @@
 // Zero dependencies. Runs in the browser and in Node (ESM).
 // https://github.com/muskec06/tinythree  ·  MIT License
 
-export const VERSION = '0.3.0';
+export const VERSION = '0.4.0';
 export const THREE_VERSION = '0.187.0';
 export const DEFAULT_THREE_URL = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}/`;
 

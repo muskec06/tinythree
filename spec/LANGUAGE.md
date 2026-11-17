@@ -106,7 +106,9 @@ Because it is part of the WebGL picture, labels appear in rendered videos.
 **Models.** `model [name] path.glb [@pos] [rot] [s] [play]` loads a glTF/GLB file with `GLTFLoader`. The name refers to
 a group that holds the model, so it can be positioned and animated like any object. `play` runs the file's own animations,
 driven by time, so they render frame-exact. Video rendering waits for models to load. Relative paths are resolved
-against the `.t3` file (the playground and `tools/render.py` handle this).
+against the `.t3` file (the playground and `tools/render.py` handle this). Draco- and meshopt-compressed files load
+too. A model that fails to load is reported in `globalThis.tinythreeErrors`, and `tools/render.py` stops with
+*scene failed to load* instead of recording an empty video.
 
 **Library parts.** `use lib:PART [name] [@pos] [rot] [s] [copies]` clones a ready-made part. Sizes are real-world
 (1 unit = 1 m), the origin is at the base center and the front faces +z:
@@ -176,6 +178,12 @@ and the video renderer waits for it before the first frame. Addons can be import
 because the generated page and the playground both define the import map.
 
 A full, tested list of what works natively and what needs these blocks is in [docs/CAPABILITIES.md](../docs/CAPABILITIES.md).
+
+**Blender layer.** Lines starting with `mod`, `con`, `set`, `key`, `render`, `cam`, `spot`, `area`, `sky`, `hdri`,
+`haze`, `shade`, `terrain`, `curve`, `scatter`, `rigid`, and `py` blocks, belong to the Blender target
+([tinythree-blender](https://github.com/muskec06/tinythree-blender)). The parser keeps them in the tree
+(`ast.blender`, `ast.py`) and the Three.js compiler skips them, so one `.t3` file opens in both. They cannot be
+indented inside a group.
 
 ## 8. What the compiler produces
 

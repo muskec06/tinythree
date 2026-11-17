@@ -232,6 +232,12 @@ tools/render.py       frame-exact video and PNG renderer
 test/                 node:test suite
 ```
 
+## Blender
+
+The same `.t3` file also builds a native Blender scene: [tinythree-blender](https://github.com/muskec06/tinythree-blender)
+adds Blender-only commands (sky, terrain, scatter, modifiers, keyframes, Cycles render settings). Three.js skips those lines,
+so one file works in both.
+
 ## Roadmap
 
 - **Wall openings (CSG):** `box wall 6,3,.3 wall cut=door`. Measured: 143 → 41 tokens (3.5× fewer) than doing it today in a `js` block with three-bvh-csg.
