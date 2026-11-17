@@ -520,11 +520,17 @@ export function compile(src, { format = 'esm', base = '' } = {}) {
     w(`  const _mixers = [];`);
     w(`  function model(url, play, cast) {`);
     w(`    const holder = new THREE.Group();`);
-    w(`    wait(import('three/addons/loaders/GLTFLoader.js').then(({ GLTFLoader }) => new GLTFLoader().loadAsync(url)).then((g) => {`);
+    // Draco- and meshopt-compressed files (common from Blender and Sketchfab) load too; the Draco
+    // decoder comes from the same three.js the page uses
+    w(`    const base = globalThis.TINYTHREE_THREE_URL || ${JSON.stringify(DEFAULT_THREE_URL)};`);
+    w(`    wait(Promise.all([import('three/addons/loaders/GLTFLoader.js'), import('three/addons/loaders/DRACOLoader.js'), import('three/addons/libs/meshopt_decoder.module.js')])`);
+    w(`      .then(([{ GLTFLoader }, { DRACOLoader }, { MeshoptDecoder }]) => new GLTFLoader()`);
+    w(`        .setDRACOLoader(new DRACOLoader().setDecoderPath(base + 'examples/jsm/libs/draco/gltf/'))`);
+    w(`        .setMeshoptDecoder(MeshoptDecoder).loadAsync(url)).then((g) => {`);
     w(`      g.scene.traverse((o) => { if (o.isMesh) o.castShadow = o.receiveShadow = cast; });`);
     w(`      holder.add(g.scene);`);
     w(`      if (play && g.animations.length) { const mx = new THREE.AnimationMixer(g.scene); g.animations.forEach((c) => mx.clipAction(c).play()); _mixers.push(mx); }`);
-    w(`    }).catch((e) => console.warn('tinythree: could not load ' + url, e)));`);
+    w(`    }).catch((e) => { (globalThis.tinythreeErrors ||= []).push('could not load ' + url + ': ' + (e && e.message || e)); console.warn('tinythree: could not load ' + url, e); }));`);
     w(`    return holder;`);
     w(`  }`);
   }
@@ -756,6 +762,7 @@ export function toHTML(src, { threeUrl = DEFAULT_THREE_URL, title = 'tinythree s
 <title>${title.replace(/</g, '&lt;')}</title>
 <style>html,body{margin:0;height:100%;overflow:hidden;background:${bg}}canvas{display:block}</style>
 <script type="importmap">{"imports":{"three":"${threeUrl}build/three.module.js","three/addons/":"${threeUrl}examples/jsm/"}}</script>
+<script>window.TINYTHREE_THREE_URL = ${JSON.stringify(threeUrl)};</script>
 </head>
 <body>
 <script type="module">

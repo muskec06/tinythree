@@ -200,3 +200,11 @@ test('every library part compiles', async () => {
   assert.equal(Object.keys(LIB).length, 13);
   for (let i = 0; i < 13; i++) assert.ok(b.objects['p' + i].children.length > 0);
 });
+
+test('glTF models load Draco and meshopt files and report load errors', () => {
+  const js = compile('model m city.glb play');
+  assert.match(js, /DRACOLoader/);
+  assert.match(js, /setMeshoptDecoder/);
+  assert.match(js, /tinythreeErrors/);
+  assert.match(toHTML('model m city.glb'), /window\.TINYTHREE_THREE_URL = /);
+});
