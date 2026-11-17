@@ -109,6 +109,9 @@ def main():
                 page.wait_for_function('window.tinythree && window.tinythree.ready', timeout=30000)
             except Exception:
                 sys.exit('scene failed to load: ' + '; '.join(errors or ['timeout (is three.js reachable?)']))
+            failed = page.evaluate('globalThis.tinythreeErrors || []')
+            if failed:      # a model or texture that did not load must not give an empty video
+                sys.exit('scene failed to load: ' + '; '.join(failed))
             info = page.evaluate('({dur: tinythree.duration, size: tinythree.size, alpha: !!tinythree.renderer.getContextAttributes().alpha})')
             w, h = map(int, a.size.split(',')) if a.size else info['size']
             page.set_viewport_size({'width': w, 'height': h})
