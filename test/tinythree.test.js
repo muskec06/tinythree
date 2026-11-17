@@ -208,3 +208,15 @@ test('glTF models load Draco and meshopt files and report load errors', () => {
   assert.match(js, /tinythreeErrors/);
   assert.match(toHTML('model m city.glb'), /window\.TINYTHREE_THREE_URL = /);
 });
+
+test('Blender layer lines (mod / set / py) are kept in the tree and skipped by Three.js', () => {
+  const src = 'box vase 1\nmod vase bevel width=.1 segments=3\nset render.engine=cycles\npy\n  print(1)\nsphere s .2\n' +
+    'terrain hills 80 h=6\nscatter vase hills 50\nsky sun=20,90\nrender cycles 64 agx\nshade m noise color=#000,#fff';
+  const ast = parse(src);
+  assert.equal(ast.blender.length, 7);
+  assert.deepEqual(ast.blender[0], { cmd: 'mod', args: ['vase', 'bevel', 'width=.1', 'segments=3'], line: 2 });
+  assert.equal(ast.py.length, 1);
+  const b = build(src);
+  assert.ok(b.objects.vase && b.objects.s);
+  throws('group g\n  mod g bevel', /cannot be indented/);
+});
