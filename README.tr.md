@@ -47,11 +47,17 @@ Token tasarrufu ilk gruptan geliyor. Diğer ikisi sahne dosyasının içinde yaz
   2. Sahneyi tarif et (örneğin "gün batımında Kolezyum, kamera yavaşça dönsün").
   3. Çıkan kodu playground'a yapıştır.
   4. Hata alırsan hata satırını modele geri gönder.
+- **Tek prompt ile, kod çalıştırabilen bir ajana (Claude Code, Codex, Cursor vb.):**
+
+  > https://github.com/muskec06/tinythree reposunu kullanarak 3D bir Eyfel Kulesi oluştur, 10 saniyelik MP4 video olarak render et ve tinythree'nin düz Three.js'e göre ne kadar token kazandırdığını göster.
+
+  Gerisini repodaki [`AGENTS.md`](AGENTS.md) anlatır: dili öğrenir, sahneyi yazıp denetler, videoyu üretir, aynı sahneyi düz Three.js ile de yazıp `tinythree tokens` ile karşılaştırır.
 - **Komut satırından:**
 
 ```bash
 git clone https://github.com/muskec06/tinythree && cd tinythree && npm install
 node bin/tinythree.js build examples/eiffel-tower.t3 -o eiffel.html
+node bin/tinythree.js tokens examples/eiffel-tower.t3 bench/threejs/eiffel-tower.js   # token kazancı
 python tools/render.py examples/building.t3 -o building.mp4      # kare kare video
 ```
 
