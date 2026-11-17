@@ -37,6 +37,9 @@ const NUM = /^-?(\d+\.?\d*|\.\d+)$/;
 const IDENT = /^[A-Za-z_][\w-]*$/;
 const PRIMS = ['box', 'sphere', 'cyl', 'cone', 'torus', 'plane', 'capsule', 'lathe', 'extrude', 'arrow', 'truss', 'text', 'model'];
 const COMMANDS = ['scene', 'amb', 'hemi', 'sun', 'point', 'mat', 'group', 'use', 'anim', 'js', 'tick', 'renderer', ...PRIMS];
+// Blender layer (https://github.com/muskec06/tinythree-blender): kept in the tree, skipped by the Three.js target
+const BLENDER_COMMANDS = ['mod', 'con', 'set', 'key', 'render', 'cam', 'spot', 'area', 'sky', 'hdri', 'haze',
+  'shade', 'terrain', 'curve', 'scatter', 'rigid'];
 const FLAGS = ['floor', 'noshadow', 'hidden', 'play', 'top'];
 const NODE_KEYS = ['rot', 'rx', 'ry', 'rz', 's', 'mirror', 'array', 'grid', 'radial', 'arc', 'lean', 'n', 't', 'seg', 'pts', 'd', 'bg', 'name'];
 
@@ -123,6 +126,7 @@ export function parse(src) {
     scene: { bg: 0x101418, cam: [4, 3, 6], look: [0, 0, 0], fov: 50, ortho: 0, orbit: false, shadows: false,
       grid: false, axes: false, fog: null, dur: 0, size: [1280, 720], transparent: false },
     mats: {}, nodes: [], anims: [], js: [], tick: [], host: [], names: new Set(),
+    py: [], blender: [], // Blender layer: kept in the tree for other targets, ignored by Three.js
   };
   const stack = [{ indent: -1, children: ast.nodes }];
 
@@ -132,13 +136,19 @@ export function parse(src) {
     const [cmd, ...args] = L.tokens;
     const line = L.line;
 
-    if (cmd === 'js' || cmd === 'tick' || cmd === 'renderer') {
+    if (BLENDER_COMMANDS.includes(cmd)) {
+      // Blender-only lines; Three.js skips them
+      if (L.indent > 0) throw new TinyThreeError(`"${cmd}" cannot be indented`, line);
+      ast.blender.push({ cmd, args, line });
+      continue;
+    }
+    if (cmd === 'js' || cmd === 'tick' || cmd === 'renderer' || cmd === 'py') {
       const body = [];
       while (i + 1 < lines.length && (lines[i + 1].indent > L.indent || !lines[i + 1].text)) {
         i++;
         body.push(lines[i].raw.replace(/^\s{0,2}/, ''));
       }
-      ({ js: ast.js, tick: ast.tick, renderer: ast.host })[cmd].push(body.join('\n'));
+      ({ js: ast.js, tick: ast.tick, renderer: ast.host, py: ast.py })[cmd].push(body.join('\n'));
       continue;
     }
     if (!COMMANDS.includes(cmd)) throw new TinyThreeError(`unknown command "${cmd}"`, line, suggest(cmd, COMMANDS));
